@@ -20,11 +20,8 @@ The LevelUp Frontend provides a modern, responsive interface for:
 - **Styling**: Tailwind CSS
 - **Routing**: TanStack Router
 - **State Management**: TanStack Query (React Query)
-- **HTTP Client**: Axios
-- **Form Handling**: React Hook Form + Zod validation
-- **UI Components**: Headless UI / Radix UI (to be added)
-- **Icons**: Lucide React (to be added)
-- **Date Handling**: date-fns (to be added)
+- **HTTP Client**: Fetch
+- **Icons**: Lucide React
 
 ## 📋 Key Features
 
@@ -99,215 +96,126 @@ VITE_APP_NAME=LevelUp
 ```
 fe-levelup/
 ├── public/                              # Static assets
-│   ├── logo.svg
-│   └── favicon.ico
+│   └── vite.svg
 │
 ├── src/
-│   ├── 📁 assets/                       # Images, fonts, icons
-│   │   ├── images/
-│   │   ├── icons/
-│   │   └── fonts/
-│   │
-│   ├── 📁 components/                   # Reusable UI components
-│   │   ├── common/                      # Shared components
-│   │   │   ├── Button.jsx
-│   │   │   ├── Input.jsx
-│   │   │   ├── Card.jsx
-│   │   │   ├── Modal.jsx
-│   │   │   ├── Table.jsx
-│   │   │   ├── Pagination.jsx
-│   │   │   ├── LoadingSpinner.jsx
-│   │   │   ├── ErrorMessage.jsx
-│   │   │   └── Badge.jsx
-│   │   │
-│   │   ├── layout/                      # Layout components
-│   │   │   ├── Header.jsx
-│   │   │   ├── Sidebar.jsx
-│   │   │   ├── Footer.jsx
-│   │   │   ├── Navbar.jsx
-│   │   │   └── MainLayout.jsx
-│   │   │
-│   │   ├── auth/                        # Authentication components
-│   │   │   ├── LoginForm.jsx
-│   │   │   ├── ChangePasswordForm.jsx
-│   │   │   └── ProtectedRoute.jsx
-│   │   │
-│   │   ├── modules/                     # Module-related components
-│   │   │   ├── ModuleCard.jsx
-│   │   │   ├── ModuleList.jsx
-│   │   │   ├── ModuleDetail.jsx
-│   │   │   ├── CreateModuleForm.jsx
-│   │   │   ├── UpdateModuleForm.jsx
-│   │   │   └── ModuleItemsList.jsx
-│   │   │
-│   │   ├── enrollments/                 # Enrollment components
-│   │   │   ├── EnrollmentCard.jsx
-│   │   │   ├── EnrollmentList.jsx
-│   │   │   ├── EnrollmentProgress.jsx
-│   │   │   ├── EnrollmentChecklist.jsx
-│   │   │   └── SubmitFinalWorkForm.jsx
-│   │   │
-│   │   ├── submissions/                 # Submission components
-│   │   │   ├── SubmissionCard.jsx
-│   │   │   ├── SubmissionList.jsx
-│   │   │   ├── ReviewSubmissionForm.jsx
-│   │   │   └── SubmissionHistory.jsx
-│   │   │
-│   │   ├── admin/                       # Admin components
-│   │   │   ├── UserManagementTable.jsx
-│   │   │   ├── CreateUserForm.jsx
-│   │   │   ├── UpdateUserForm.jsx
-│   │   │   ├── PositionManagementTable.jsx
-│   │   │   └── CreatePositionForm.jsx
-│   │   │
-│   │   └── manager/                     # Manager components
-│   │       ├── DashboardStats.jsx
-│   │       ├── EmployeeTable.jsx
-│   │       ├── EmployeeDetailCard.jsx
-│   │       └── SubmissionReviewCard.jsx
-│   │
-│   ├── 📁 pages/                        # Page components (Routes)
-│   │   ├── auth/
-│   │   │   └── Login.jsx
-│   │   │
-│   │   ├── employee/
-│   │   │   ├── Dashboard.jsx
-│   │   │   ├── ModuleBrowse.jsx
-│   │   │   ├── ModuleDetails.jsx
-│   │   │   ├── CurrentEnrollment.jsx
-│   │   │   ├── EnrollmentHistory.jsx
-│   │   │   └── Profile.jsx
-│   │   │
-│   │   ├── manager/
-│   │   │   ├── Dashboard.jsx
-│   │   │   ├── ModuleManagement.jsx
-│   │   │   ├── CreateModule.jsx
-│   │   │   ├── EditModule.jsx
-│   │   │   ├── EmployeeOverview.jsx
-│   │   │   ├── EmployeeDetail.jsx
-│   │   │   ├── SubmissionReview.jsx
-│   │   │   └── Analytics.jsx
-│   │   │
-│   │   ├── admin/
-│   │   │   ├── Dashboard.jsx
-│   │   │   ├── UserManagement.jsx
-│   │   │   ├── CreateUser.jsx
-│   │   │   ├── EditUser.jsx
-│   │   │   └── PositionManagement.jsx
-│   │   │
-│   │   └── common/
-│   │       ├── NotFound.jsx
-│   │       └── Unauthorized.jsx
+│   ├── 📁 api/                          # API calls (Axios)
+│   │   ├── auth.api.js                  # Login, change password
+│   │   ├── users.api.js                 # User CRUD operations
+│   │   ├── positions.api.js             # Position management
+│   │   ├── modules.api.js               # Module CRUD operations
+│   │   ├── enrollments.api.js           # Enrollment operations
+│   │   └── submissions.api.js           # Submission operations
 │   │
 │   ├── 📁 hooks/                        # Custom React hooks
-│   │   ├── useAuth.js                   # Authentication hook
-│   │   ├── useLocalStorage.js           # Local storage hook
-│   │   ├── useDebounce.js               # Debounce hook
-│   │   ├── usePagination.js             # Pagination hook
-│   │   └── useToast.js                  # Toast notification hook
+│   │   ├── useAuth.js                   # Authentication & user state
+│   │   └── useFetch.js                  # Data fetching with TanStack Query
 │   │
-│   ├── 📁 services/                     # API service layer
-│   │   ├── api.js                       # Axios instance & interceptors
-│   │   ├── auth.service.js              # Auth API calls
-│   │   ├── user.service.js              # User management API
-│   │   ├── module.service.js            # Module API calls
-│   │   ├── enrollment.service.js        # Enrollment API calls
-│   │   ├── submission.service.js        # Submission API calls
-│   │   ├── position.service.js          # Position API calls
-│   │   └── dashboard.service.js         # Dashboard API calls
+│   ├── 📁 context/                      # React Context
+│   │   └── AuthContext.jsx              # Auth state & user role
 │   │
-│   ├── 📁 queries/                      # TanStack Query hooks
-│   │   ├── useAuthQueries.js            # Auth queries & mutations
-│   │   ├── useUserQueries.js            # User CRUD queries
-│   │   ├── useModuleQueries.js          # Module queries
-│   │   ├── useEnrollmentQueries.js      # Enrollment queries
-│   │   ├── useSubmissionQueries.js      # Submission queries
-│   │   ├── usePositionQueries.js        # Position queries
-│   │   └── useDashboardQueries.js       # Dashboard queries
+│   ├── 📁 components/                   # Reusable components
+│   │   ├── common/                      # Shared UI components
+│   │   │   ├── Button.jsx
+│   │   │   ├── Input.jsx
+│   │   │   ├── Modal.jsx
+│   │   │   └── Table.jsx
+│   │   │
+│   │   └── layout/                      # Layout wrappers
+│   │       ├── AdminLayout.jsx          # Admin pages layout
+│   │       ├── ManagerLayout.jsx        # Manager pages layout
+│   │       ├── EmployeeLayout.jsx       # Employee pages layout
+│   │       └── AuthLayout.jsx           # Login/auth pages layout
 │   │
-│   ├── 📁 routes/                       # TanStack Router configuration
-│   │   ├── index.jsx                    # Root route config
-│   │   ├── auth.routes.jsx              # Auth routes
-│   │   ├── employee.routes.jsx          # Employee routes
-│   │   ├── manager.routes.jsx           # Manager routes
-│   │   └── admin.routes.jsx             # Admin routes
+│   ├── 📁 pages/                        # Page components
+│   │   ├── auth/                        # Authentication pages
+│   │   │   ├── Login.jsx
+│   │   │   └── ChangePassword.jsx
+│   │   │
+│   │   ├── admin/                       # Admin pages
+│   │   │   ├── users/
+│   │   │   │   ├── UserList.jsx
+│   │   │   │   └── UserForm.jsx         # Create & Edit user
+│   │   │   │
+│   │   │   └── positions/
+│   │   │       ├── PositionList.jsx
+│   │   │       └── PositionForm.jsx     # Create & Edit position
+│   │   │
+│   │   ├── manager/                     # Manager pages
+│   │   │   ├── dashboard/
+│   │   │   │   └── ManagerDashboard.jsx
+│   │   │   │
+│   │   │   ├── employees/
+│   │   │   │   ├── EmployeeList.jsx
+│   │   │   │   └── EmployeeDetail.jsx
+│   │   │   │
+│   │   │   └── modules/
+│   │   │       ├── ModuleList.jsx
+│   │   │       ├── ModuleForm.jsx       # Create & Edit module
+│   │   │       ├── ModuleDetail.jsx
+│   │   │       ├── ModuleItemForm.jsx   # Add/Edit module items
+│   │   │       └── ModuleStatusUpdate.jsx
+│   │   │
+│   │   └── employee/                    # Employee pages
+│   │       ├── enrollments/
+│   │       │   ├── EnrollmentCurrent.jsx
+│   │       │   ├── EnrollmentHistory.jsx
+│   │       │   ├── EnrollmentResume.jsx
+│   │       │   ├── EnrollmentProgress.jsx
+│   │       │   └── EnrollmentChecklist.jsx
+│   │       │
+│   │       └── submissions/
+│   │           ├── SubmissionForm.jsx
+│   │           └── SubmissionHistory.jsx
 │   │
-│   ├── 📁 context/                      # React Context providers
-│   │   ├── AuthContext.jsx              # Authentication context
-│   │   ├── ThemeContext.jsx             # Theme/dark mode context
-│   │   └── ToastContext.jsx             # Toast notification context
+│   ├── 📁 utils/                        # Helper functions
+│   │   ├── formatDate.js                # Date formatting utilities
+│   │   └── roleGuard.js                 # Role-based access control
 │   │
-│   ├── 📁 utils/                        # Utility functions
-│   │   ├── constants.js                 # App constants
-│   │   ├── helpers.js                   # General helpers
-│   │   ├── validators.js                # Validation functions
-│   │   ├── formatters.js                # Date, number formatters
-│   │   ├── storage.js                   # LocalStorage helpers
-│   │   └── permissions.js               # Role-based permission checks
+│   ├── 📁 router/                       # Routing configuration
+│   │   └── AppRouter.jsx                # TanStack Router setup
 │   │
-│   ├── 📁 schemas/                      # Zod validation schemas
-│   │   ├── auth.schema.js               # Login, password schemas
-│   │   ├── user.schema.js               # User creation/update schemas
-│   │   ├── module.schema.js             # Module schemas
-│   │   ├── enrollment.schema.js         # Enrollment schemas
-│   │   └── submission.schema.js         # Submission schemas
+│   ├── 📁 assets/                       # Static assets
+│   │   ├── icons/
+│   │   └── images/
 │   │
 │   ├── 📁 styles/                       # Global styles
-│   │   ├── index.css                    # Tailwind imports & global styles
-│   │   └── variables.css                # CSS custom properties
+│   │   └── global.css                   # Tailwind + custom styles
 │   │
 │   ├── App.jsx                          # Root component
-│   ├── main.jsx                         # App entry point
-│   └── Router.jsx                       # Router setup
+│   └── main.jsx                         # App entry point
 │
 ├── .env                                 # Environment variables
-├── .env.example                         # Example environment file
 ├── .gitignore
-├── .prettierrc                          # Prettier config
 ├── eslint.config.js                     # ESLint config
 ├── tailwind.config.js                   # Tailwind config
 ├── postcss.config.js                    # PostCSS config
 ├── vite.config.js                       # Vite config
 ├── package.json
-├── README.md
 └── index.html
 ```
 
-## 🗂️ Architecture Patterns
+## 🗂️ Architecture Overview
 
-### Component Organization
+### Folder Explanation
 
-```
-Component Types:
-├── Pages (Route components)
-├── Feature Components (Domain-specific)
-├── Common Components (Reusable UI)
-└── Layout Components (Structure)
-```
+- **`api/`** - Direct API calls using Axios (GET, POST, PUT, DELETE, PATCH)
+- **`hooks/`** - Custom hooks untuk auth dan data fetching dengan TanStack Query
+- **`context/`** - Global state untuk authentication dan user info
+- **`components/`** - Reusable UI components (Button, Input, Table, dll) dan Layout wrappers
+- **`pages/`** - Page components berdasarkan role (admin, manager, employee)
+- **`utils/`** - Helper functions (format date, debounce, role guard)
+- **`router/`** - Routing configuration dengan TanStack Router
+- **`assets/`** - Images dan icons
+- **`styles/`** - Global CSS dengan Tailwind
 
 ### Data Flow
 
 ```
-User Action → Component → Hook → Query/Mutation → Service → API
-                ↓                      ↓
-            UI Update ← Cache Update ← Response
+User Action → Page Component → useFetch Hook → API Call → Backend
+                ↓                    ↓
+            UI Update ← TanStack Query Cache Update ← Response
 ```
-
-### State Management Strategy
-
-- **Server State**: TanStack Query (API data, caching, synchronization)
-- **Auth State**: Context API + LocalStorage (user, token, role)
-- **UI State**: Component state (modals, forms, toggles)
-- **Global UI State**: Context API (theme, toast notifications)
-
-## 🔐 Authentication Flow
-
-1. User submits login credentials
-2. Backend validates and returns JWT token
-3. Token stored in LocalStorage
-4. Token attached to all API requests via interceptor
-5. On 401 response, redirect to login
-6. Token expiration handled by auto-logout
 
 ## 🛣️ Routing Structure
 
@@ -335,106 +243,17 @@ User Action → Component → Hook → Query/Mutation → Service → API
     └── positions
 ```
 
-## 🔄 API Integration
-
-### Service Layer Pattern
-
-```javascript
-// services/module.service.js
-import api from './api';
-
-export const moduleService = {
-  getAll: (params) => api.get('/modules', { params }),
-  getById: (id) => api.get(`/modules/${id}`),
-  create: (data) => api.post('/modules', data),
-  update: (id, data) => api.put(`/modules/${id}`, data),
-  updateStatus: (id, isActive) => api.patch(`/modules/${id}/status`, { isActive }),
-};
-```
-
-### TanStack Query Integration
-
-```javascript
-// queries/useModuleQueries.js
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { moduleService } from '../services/module.service';
-
-export const useModules = (params) => {
-  return useQuery({
-    queryKey: ['modules', params],
-    queryFn: () => moduleService.getAll(params),
-  });
-};
-
-export const useCreateModule = () => {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: moduleService.create,
-    onSuccess: () => {
-      queryClient.invalidateQueries(['modules']);
-    },
-  });
-};
-```
-
-## 📦 Dependencies To Install
-
-```bash
-# Routing
-npm install @tanstack/react-router @tanstack/react-router-devtools
-
-# State Management
-npm install @tanstack/react-query @tanstack/react-query-devtools
-
-# HTTP Client
-npm install axios
-
-# Form Handling
-npm install react-hook-form zod @hookform/resolvers
-
-# Styling
-npm install -D tailwindcss postcss autoprefixer
-npx tailwindcss init -p
-
-# UI Components (choose one)
-npm install @headlessui/react @heroicons/react
-# OR
-npm install @radix-ui/react-* (install specific components)
-
-# Icons
-npm install lucide-react
-
-# Utilities
-npm install date-fns
-npm install clsx tailwind-merge
-```
-
-## 🧪 Development Scripts
-
-```bash
-npm run dev          # Start development server
-npm run build        # Build for production
-npm run preview      # Preview production build
-npm run lint         # Run ESLint
-npm run format       # Format with Prettier
-```
-
 ## 📱 Responsive Design
 
 - **Mobile**: < 640px (sm)
 - **Tablet**: 640px - 1024px (md-lg)
 - **Desktop**: > 1024px (xl-2xl)
 
-All components should be mobile-first responsive.
-
 ## 🚨 Error Handling
 
-- Global error boundary for uncaught errors
 - API error interceptor for 401/403/500 responses
-- Toast notifications for user feedback
-- Form validation with Zod schemas
-- Loading states with skeletons
+- Loading states untuk async operations
+- Error messages untuk user feedback
 
 ## 🎯 User Roles & Permissions
 
