@@ -94,105 +94,63 @@ VITE_APP_NAME=LevelUp
 ## 📁 Project Structure
 
 ```
-fe-levelup/
-├── public/                              # Static assets
-│   └── vite.svg
+src/
+├── routes/              # Route definitions (file-based routing)
+│   ├── __root.jsx       # Root layout & global setup
+│   ├── index.jsx        # Homepage (/)
+│   ├── login.jsx        # Login page (/login)
+│   ├── _admin.jsx       # Admin layout (underscore = layout route)
+│   ├── _admin/          # Admin routes under /admin/*
+│   ├── _manager.jsx     # Manager layout
+│   ├── _manager/        # Manager routes under /manager/*
+│   ├── _employee.jsx    # Employee layout
+│   └── _employee/       # Employee routes under /employee/*
 │
-├── src/
-│   ├── 📁 api/                          # API calls (Axios)
-│   │   ├── auth.api.js                  # Login, change password
-│   │   ├── users.api.js                 # User CRUD operations
-│   │   ├── positions.api.js             # Position management
-│   │   ├── modules.api.js               # Module CRUD operations
-│   │   ├── enrollments.api.js           # Enrollment operations
-│   │   └── submissions.api.js           # Submission operations
-│   │
-│   ├── 📁 hooks/                        # Custom React hooks
-│   │   ├── useAuth.js                   # Authentication & user state
-│   │   └── useFetch.js                  # Data fetching with TanStack Query
-│   │
-│   ├── 📁 context/                      # React Context
-│   │   └── AuthContext.jsx              # Auth state & user role
-│   │
-│   ├── 📁 components/                   # Reusable components
-│   │   ├── common/                      # Shared UI components
-│   │   │   ├── Button.jsx
-│   │   │   ├── Input.jsx
-│   │   │   ├── Modal.jsx
-│   │   │   └── Table.jsx
-│   │   │
-│   │   └── layout/                      # Layout wrappers
-│   │       ├── AdminLayout.jsx          # Admin pages layout
-│   │       ├── ManagerLayout.jsx        # Manager pages layout
-│   │       ├── EmployeeLayout.jsx       # Employee pages layout
-│   │       └── AuthLayout.jsx           # Login/auth pages layout
-│   │
-│   ├── 📁 pages/                        # Page components
-│   │   ├── auth/                        # Authentication pages
-│   │   │   ├── Login.jsx
-│   │   │   └── ChangePassword.jsx
-│   │   │
-│   │   ├── admin/                       # Admin pages
-│   │   │   ├── users/
-│   │   │   │   ├── UserList.jsx
-│   │   │   │   └── UserForm.jsx         # Create & Edit user
-│   │   │   │
-│   │   │   └── positions/
-│   │   │       ├── PositionList.jsx
-│   │   │       └── PositionForm.jsx     # Create & Edit position
-│   │   │
-│   │   ├── manager/                     # Manager pages
-│   │   │   ├── dashboard/
-│   │   │   │   └── ManagerDashboard.jsx
-│   │   │   │
-│   │   │   ├── employees/
-│   │   │   │   ├── EmployeeList.jsx
-│   │   │   │   └── EmployeeDetail.jsx
-│   │   │   │
-│   │   │   └── modules/
-│   │   │       ├── ModuleList.jsx
-│   │   │       ├── ModuleForm.jsx       # Create & Edit module
-│   │   │       ├── ModuleDetail.jsx
-│   │   │       ├── ModuleItemForm.jsx   # Add/Edit module items
-│   │   │       └── ModuleStatusUpdate.jsx
-│   │   │
-│   │   └── employee/                    # Employee pages
-│   │       ├── enrollments/
-│   │       │   ├── EnrollmentCurrent.jsx
-│   │       │   ├── EnrollmentHistory.jsx
-│   │       │   ├── EnrollmentResume.jsx
-│   │       │   ├── EnrollmentProgress.jsx
-│   │       │   └── EnrollmentChecklist.jsx
-│   │       │
-│   │       └── submissions/
-│   │           ├── SubmissionForm.jsx
-│   │           └── SubmissionHistory.jsx
-│   │
-│   ├── 📁 utils/                        # Helper functions
-│   │   ├── formatDate.js                # Date formatting utilities
-│   │   └── roleGuard.js                 # Role-based access control
-│   │
-│   ├── 📁 router/                       # Routing configuration
-│   │   └── AppRouter.jsx                # TanStack Router setup
-│   │
-│   ├── 📁 assets/                       # Static assets
-│   │   ├── icons/
-│   │   └── images/
-│   │
-│   ├── 📁 styles/                       # Global styles
-│   │   └── global.css                   # Tailwind + custom styles
-│   │
-│   ├── App.jsx                          # Root component
-│   └── main.jsx                         # App entry point
+├── pages/               # Page components (main content)
+│   ├── Home.jsx
+│   ├── auth/
+│   │   ├── Login.jsx
+│   │   └── ChangePassword.jsx
+│   ├── admin/
+│   │   ├── users/
+│   │   └── positions/
+│   ├── manager/
+│   │   ├── dashboard/
+│   │   ├── employees/
+│   │   └── modules/
+│   └── employee/
+│       ├── enrollments/
+│       └── submissions/
 │
-├── .env                                 # Environment variables
-├── .gitignore
-├── eslint.config.js                     # ESLint config
-├── tailwind.config.js                   # Tailwind config
-├── postcss.config.js                    # PostCSS config
-├── vite.config.js                       # Vite config
-├── package.json
-└── index.html
+├── components/          # Reusable components
+│   ├── layout/          # Layout components
+│   │   ├── AdminLayout.jsx
+│   │   ├── ManagerLayout.jsx
+│   │   ├── EmployeeLayout.jsx
+│   │   └── AuthLayout.jsx
+│   └── common/          # Common UI components
+│       ├── Button.jsx
+│       └── Input.jsx
+│
+├── api/                 # API calls
+│   ├── auth.api.js
+│   └── modules.api.js
+│
+├── hooks/               # Custom React hooks
+│   ├── useAuth.js
+│   └── useFetch.js
+│
+├── utils/               # Utility functions
+│   ├── formatDate.js
+│   └── roleGuard.js
+│
+├── context/             # React Context
+│   ├── AuthContext.js
+│   └── AuthContext.jsx
+│
+├── main.jsx             # App entry point
+├── App.jsx              # Root component
+└── routeTree.gen.ts     # Auto-generated (DO NOT EDIT)
 ```
 
 ## 🗂️ Architecture Overview
