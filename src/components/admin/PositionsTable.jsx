@@ -9,26 +9,18 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Input } from '@/components/ui/input';
-import {
-  Select,
-  SelectTrigger,
-  SelectValue,
-  SelectContent,
-  SelectItem,
-} from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 
 export default function UsersTable() {
   // Dummy data
-  const [data] = useState([
-    { id: 1, title: 'Employee', status: 'active' },
-    { id: 2, title: 'Manager', status: 'active' },
-    { id: 3, title: 'Admin', status: 'active' },
+  const [data, setData] = useState([
+    { positionId: 1, title: 'Employee', status: 'active' },
+    { positionId: 2, title: 'Manager', status: 'active' },
+    { positionId: 3, title: 'Admin', status: 'active' },
   ]);
 
-  // Search + Filter
+  // Search 
   const [search, setSearch] = useState('');
-  const [roleFilter, setRoleFilter] = useState('all');
 
   // Pagination
   const [page, setPage] = useState(1);
@@ -41,11 +33,9 @@ export default function UsersTable() {
         item.title.toLowerCase().includes(search.toLowerCase()) ||
         item.status.toLowerCase().includes(search.toLowerCase());
 
-      const matchRole = roleFilter === 'all' || item.role === roleFilter;
-
-      return matchSearch && matchRole;
+      return matchSearch;
     });
-  }, [search, roleFilter, data]);
+  }, [search, data]);
 
   // Pagination sliced
   const paginated = useMemo(() => {
@@ -53,28 +43,24 @@ export default function UsersTable() {
     return filtered.slice(start, start + pageSize);
   }, [page, filtered]);
 
+  // Delete handler
+  function handleDelete(id) {
+    if (!confirm('Are you sure you want to delete this position?')) return;
+
+    setData((prev) => prev.filter((u) => u.positionId !== id));
+  }
+
   return (
     <div className="space-y-4 p-4">
       {/* Search + Filter */}
       <div className="flex gap-3">
         <Input
-          placeholder="Search user..."
+          placeholder="Search position..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="max-w-xs"
         />
 
-        <Select value={roleFilter} onValueChange={setRoleFilter}>
-          <SelectTrigger className="w-32">
-            <SelectValue placeholder="Role" />
-          </SelectTrigger>
-          {/* <SelectContent>
-            <SelectItem value="all">All</SelectItem>
-            <SelectItem value="admin">Admin</SelectItem>
-            <SelectItem value="manager">Manager</SelectItem>
-            <SelectItem value="employee">Employee</SelectItem>
-          </SelectContent> */}
-        </Select>
       </div>
 
       {/* Table */}
@@ -82,6 +68,7 @@ export default function UsersTable() {
         <Table>
           <TableHeader>
             <TableRow>
+              <TableHead>PositionId</TableHead>
               <TableHead>Title</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Action</TableHead>
@@ -90,16 +77,25 @@ export default function UsersTable() {
 
           <TableBody>
             {paginated.map((position) => (
-              <TableRow key={position.id}>
+              <TableRow key={position.positionId}>
+                <TableCell>{position.positionId}</TableCell>
                 <TableCell>{position.title}</TableCell>
                 <TableCell>{position.status}</TableCell>
 
-                <TableCell>
-                  <Link to={`/admin/positions/${position.id}`}>
+                <TableCell className="flex gap-2">
+                  <Link to={`/admin/positions/${position.positionId}`}>
                     <Button variant="outline" size="sm">
                       Edit
                     </Button>
                   </Link>
+
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    onClick={() => handleDelete(position.positionId)}
+                  >
+                    Delete
+                  </Button>
                 </TableCell>
               </TableRow>
             ))}
