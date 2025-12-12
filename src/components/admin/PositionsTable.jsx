@@ -21,10 +21,9 @@ import { Button } from '@/components/ui/button';
 export default function UsersTable() {
   // Dummy data
   const [data] = useState([
-    { id: 1, name: 'Imam', email: 'imam@mail.com', role: 'admin' },
-    { id: 2, name: 'Dina', email: 'dina@mail.com', role: 'manager' },
-    { id: 3, name: 'Rama', email: 'rama@mail.com', role: 'employee' },
-    { id: 4, name: 'Sarah', email: 'sarah@mail.com', role: 'employee' },
+    { id: 1, title: 'Employee', status: 'active' },
+    { id: 2, title: 'Manager', status: 'active' },
+    { id: 3, title: 'Admin', status: 'active' },
   ]);
 
   // Search + Filter
@@ -39,8 +38,8 @@ export default function UsersTable() {
   const filtered = useMemo(() => {
     return data.filter((item) => {
       const matchSearch =
-        item.name.toLowerCase().includes(search.toLowerCase()) ||
-        item.email.toLowerCase().includes(search.toLowerCase());
+        item.title.toLowerCase().includes(search.toLowerCase()) ||
+        item.status.toLowerCase().includes(search.toLowerCase());
 
       const matchRole = roleFilter === 'all' || item.role === roleFilter;
 
@@ -69,12 +68,12 @@ export default function UsersTable() {
           <SelectTrigger className="w-32">
             <SelectValue placeholder="Role" />
           </SelectTrigger>
-          <SelectContent>
+          {/* <SelectContent>
             <SelectItem value="all">All</SelectItem>
             <SelectItem value="admin">Admin</SelectItem>
             <SelectItem value="manager">Manager</SelectItem>
             <SelectItem value="employee">Employee</SelectItem>
-          </SelectContent>
+          </SelectContent> */}
         </Select>
       </div>
 
@@ -83,22 +82,20 @@ export default function UsersTable() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Name</TableHead>
-              <TableHead>Email</TableHead>
-              <TableHead>Role</TableHead>
+              <TableHead>Title</TableHead>
+              <TableHead>Status</TableHead>
               <TableHead>Action</TableHead>
             </TableRow>
           </TableHeader>
 
           <TableBody>
-            {paginated.map((user) => (
-              <TableRow key={user.id}>
-                <TableCell>{user.name}</TableCell>
-                <TableCell>{user.email}</TableCell>
-                <TableCell className="capitalize">{user.role}</TableCell>
+            {paginated.map((position) => (
+              <TableRow key={position.id}>
+                <TableCell>{position.title}</TableCell>
+                <TableCell>{position.status}</TableCell>
 
                 <TableCell>
-                  <Link to={`/admin/users/${user.id}`}>
+                  <Link to={`/admin/positions/${position.id}`}>
                     <Button variant="outline" size="sm">
                       Edit
                     </Button>
