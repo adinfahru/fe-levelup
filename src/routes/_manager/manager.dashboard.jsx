@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
+import DashboardTable from "../../components/manager/DashboardTable";
 
 export const Route = createFileRoute("/_manager/manager/dashboard")({
   component: ManagerDashboard,
@@ -169,3 +170,6 @@ function SectionTable({ title, searchValue, onSearchChange, data }) {
     </div>
   );
 }
+
+
+<DashboardTable/>
