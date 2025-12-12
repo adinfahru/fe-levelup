@@ -8,13 +8,11 @@ function UserDetail() {
   const { id } = Route.useParams();
 
   return (
-    <div>
-      <h2 className="text-xl font-semibold mb-4">User Detail: {id}</h2>
+    <div className="space-y-4">
+      <h2 className="text-xl font-bold">User Detail — {id}</h2>
 
-      {/* Nanti kamu fetch detail user berdasarkan id */}
-      {/* Misal fetch: GET /api/users/:id */}
-
-      <p>Edit form goes here...</p>
+      {/* Form edit user akan diletakkan di sini */}
+      <p>Form edit goes here...</p>
     </div>
   );
 }

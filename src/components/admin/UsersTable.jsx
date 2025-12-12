@@ -19,12 +19,44 @@ import {
 import { Button } from '@/components/ui/button';
 
 export default function UsersTable() {
-  // Dummy data
-  const [data] = useState([
-    { id: 1, name: 'Imam', email: 'imam@mail.com', role: 'admin' },
-    { id: 2, name: 'Dina', email: 'dina@mail.com', role: 'manager' },
-    { id: 3, name: 'Rama', email: 'rama@mail.com', role: 'employee' },
-    { id: 4, name: 'Sarah', email: 'sarah@mail.com', role: 'employee' },
+  // Dummy data menyesuaikan BE
+  const [data, setData] = useState([
+    {
+      accountId: 1,
+      email: 'imamm@mail.com',
+      role: 'admin',
+      status: 'active',
+      firstName: 'Imam',
+      lastName: 'Zuhdi',
+      positionId: 1,
+    },
+    {
+      accountId: 2,
+      email: 'imamz@mail.com',
+      role: 'employee',
+      status: 'active',
+      firstName: 'Imam',
+      lastName: 'Zuhdi',
+      positionId: 1,
+    },
+    {
+      accountId: 3,
+      email: 'imami@mail.com',
+      role: 'manager',
+      status: 'active',
+      firstName: 'Imam',
+      lastName: 'Zuhdi',
+      positionId: 1,
+    },
+    {
+      accountId: 4,
+      email: 'imamw@mail.com',
+      role: 'employee',
+      status: 'active',
+      firstName: 'Imam',
+      lastName: 'Zuhdi',
+      positionId: 1,
+    },
   ]);
 
   // Search + Filter
@@ -35,11 +67,12 @@ export default function UsersTable() {
   const [page, setPage] = useState(1);
   const pageSize = 2;
 
-  // Filtered Data
+  // Filtered data
   const filtered = useMemo(() => {
     return data.filter((item) => {
       const matchSearch =
-        item.name.toLowerCase().includes(search.toLowerCase()) ||
+        item.firstName.toLowerCase().includes(search.toLowerCase()) ||
+        item.lastName.toLowerCase().includes(search.toLowerCase()) ||
         item.email.toLowerCase().includes(search.toLowerCase());
 
       const matchRole = roleFilter === 'all' || item.role === roleFilter;
@@ -48,11 +81,17 @@ export default function UsersTable() {
     });
   }, [search, roleFilter, data]);
 
-  // Pagination sliced
   const paginated = useMemo(() => {
     const start = (page - 1) * pageSize;
     return filtered.slice(start, start + pageSize);
   }, [page, filtered]);
+
+  // Delete handler
+  function handleDelete(id) {
+    if (!confirm('Are you sure you want to delete this user?')) return;
+
+    setData((prev) => prev.filter((u) => u.accountId !== id));
+  }
 
   return (
     <div className="space-y-4 p-4">
@@ -83,33 +122,49 @@ export default function UsersTable() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Name</TableHead>
+              <TableHead>AccountId</TableHead>
               <TableHead>Email</TableHead>
               <TableHead>Role</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead>FirstName</TableHead>
+              <TableHead>LastName</TableHead>
+              <TableHead>PositionId</TableHead>
               <TableHead>Action</TableHead>
             </TableRow>
           </TableHeader>
 
           <TableBody>
             {paginated.map((user) => (
-              <TableRow key={user.id}>
-                <TableCell>{user.name}</TableCell>
+              <TableRow key={user.accountId}>
+                <TableCell>{user.accountId}</TableCell>
                 <TableCell>{user.email}</TableCell>
                 <TableCell className="capitalize">{user.role}</TableCell>
+                <TableCell className="capitalize">{user.status}</TableCell>
+                <TableCell>{user.firstName}</TableCell>
+                <TableCell>{user.lastName}</TableCell>
+                <TableCell>{user.positionId}</TableCell>
 
-                <TableCell>
-                  <Link to={`/admin/users/${user.id}`}>
+                <TableCell className="flex gap-2">
+                  <Link to={`/admin/users/${user.accountId}`}>
                     <Button variant="outline" size="sm">
                       Edit
                     </Button>
                   </Link>
+
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    onClick={() => handleDelete(user.accountId)}
+                  >
+                    Delete
+                  </Button>
                 </TableCell>
               </TableRow>
             ))}
 
             {paginated.length === 0 && (
               <TableRow>
-                <TableCell colSpan={4} className="text-center py-6">
+                <TableCell colSpan={8} className="text-center py-6">
                   No results found.
                 </TableCell>
               </TableRow>
