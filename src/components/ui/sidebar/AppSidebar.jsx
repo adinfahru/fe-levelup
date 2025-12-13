@@ -64,7 +64,8 @@ export default function AppSidebar({ title, items, onLogout }) {
                 <SidebarMenuItem>
                   <SidebarMenuButton
                     onClick={handleLogout}
-                    className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-red-600/40 text-red-400">
+                    className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-red-600/40 text-red-400"
+                  >
                     <LogOut className="w-5 h-5" />
                     <span>Logout</span>
                   </SidebarMenuButton>

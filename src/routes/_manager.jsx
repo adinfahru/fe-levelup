@@ -7,7 +7,6 @@ export const Route = createFileRoute("/_manager")({
   component: ManagerLayout,
 });
 
-// Navigation items untuk manager
 const managerItems = [
   { title: "Dashboard", to: "/manager/dashboard", icon: LayoutDashboard },
   { title: "Modules", to: "/manager/modules", icon: BookOpen },
