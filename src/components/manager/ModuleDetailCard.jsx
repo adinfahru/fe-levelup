@@ -3,16 +3,28 @@ import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { Pencil } from "lucide-react";
+import { Pencil, Trash, Users } from "lucide-react";
+import { useNavigate } from '@tanstack/react-router';
 
 export function ModuleDetailCard({ data, onToggleActive }) {
   const isActive = data?.isActive;
+  const navigate = useNavigate();
 
   return (
     <Card className="rounded-2xl border border-gray-200 shadow-md bg-white relative p-6">
-      {/* TOP RIGHT: EDIT + SWITCH */}
+      {/* TOP RIGHT: DELETE + EDIT + SWITCH */}
       <div className="absolute top-4 right-4 flex items-center gap-3">
-        <Button size="icon" variant="outline" className="rounded-md">
+        <Button 
+          size="icon" 
+          variant="destructive" 
+          className="rounded-md" 
+          onClick={() => onDelete && onDelete(data.id)}
+        >
+          <Trash className="w-4 h-4" />
+        </Button>
+
+        <Button size="icon" variant="outline" className="rounded-md" onClick={() =>
+            navigate({ to: '/manager/module/edit'})}>
           <Pencil className="w-4 h-4" />
         </Button>
 
@@ -42,6 +54,20 @@ export function ModuleDetailCard({ data, onToggleActive }) {
 
         {/* DESCRIPTION */}
         <p className="text-gray-700 leading-relaxed text-sm">{data.description}</p>
+
+        {/* VIEW ENROLLED USERS */}
+        <button
+          onClick={() =>
+            navigate({
+              to: "/manager/module/enrolled",
+              search: { moduleId: data.id },
+            })
+          }
+          className="flex items-center gap-2 text-sm font-medium text-indigo-700 hover:underline"
+        >
+          <Users className="w-4 h-4" />
+          Lihat user yang enroll
+        </button>
       </CardContent>
     </Card>
   );

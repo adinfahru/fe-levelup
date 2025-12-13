@@ -1,4 +1,4 @@
-import { createFileRoute } from '@tanstack/react-router';
+import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -10,6 +10,7 @@ export const Route = createFileRoute('/_manager/manager/modules')({
 });
 
 function ModuleList() {
+  const navigate = useNavigate();
   const [search, setSearch] = useState('');
 
   const modules = [
@@ -46,7 +47,7 @@ function ModuleList() {
         <Button
           className="bg-indigo-800 text-white flex gap-2"
           onClick={() =>
-            Route.router.navigate({ to: '/manager/modules/create' })
+            navigate({ to: '/manager/module/create' })
           }
         >
           <Plus className="w-4 h-4" />

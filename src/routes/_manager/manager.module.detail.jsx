@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { ModuleDetailCard } from "@/components/manager/ModuleDetailCard";
 import { ModuleSections } from "@/components/manager/ModuleSections";
+import { Breadcrumbs } from "@/components/ui/sidebar/Breadcrumbs";
 
 export const Route = createFileRoute("/_manager/manager/module/detail")({
   component: ModuleDetailPage,
@@ -35,9 +36,13 @@ const dummySections = [
 function ModuleDetailPage() {
   return (
     <div className="space-y-6 p-4">
-      <div className="text-sm text-gray-500">
-        Module / .NET Learning Path 1 / Employee Enroll
-      </div>
+      <Breadcrumbs
+        items={[
+          { label: "Module", to: "/manager/modules" },
+          { label: ".NET Learning Path 1" }, // tidak ada `to`, berarti tidak klikable
+        ]}
+      />
+
 
       <ModuleDetailCard
         data={{
