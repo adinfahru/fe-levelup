@@ -1,21 +1,41 @@
-import { Link, Outlet } from '@tanstack/react-router';
+import { Outlet } from '@tanstack/react-router';
+import { SidebarProvider } from '@/components/ui/sidebar';
+import { LayoutDashboard, BookOpenText, LibraryBig  } from 'lucide-react';
+import AppSidebar from '@/components/ui/sidebar/AppSidebar';
+import { useAuth } from '@/hooks/useAuth';
+
+const employeeItems = [
+  {
+    title: 'Dashboard',
+    to: '/employee/dashboard',
+    icon: LayoutDashboard,
+    exact: true,
+  },
+  {
+    title: 'Enrollment',
+    to: '/employee/enrollments',
+    icon: BookOpenText,
+    exact: true, 
+  },
+  {
+    title: 'History',
+    to: '/employee/enrollments/history',
+    icon: LibraryBig,
+    exact: true,
+  },
+];
 
 export default function EmployeeLayout() {
+  const { logout } = useAuth();
+
   return (
-    <div>
-      <nav style={{ padding: '1rem', borderBottom: '1px solid #ccc' }}>
-        <h2>Employee Panel</h2>
-        <Link to="/employee/enrollments" style={{ marginRight: '1rem' }}>
-          My Enrollment
-        </Link>
-        <Link to="/employee/history" style={{ marginRight: '1rem' }}>
-          History
-        </Link>
-        <Link to="/employee/submission">Submit Work</Link>
-      </nav>
-      <main style={{ padding: '1rem' }}>
-        <Outlet />
-      </main>
-    </div>
-  );
+      <SidebarProvider>
+        <div className="flex h-screen w-full">
+          <AppSidebar title="Employee Panel" items={employeeItems} onLogout={logout} />
+          <main className="flex-1 overflow-y-auto p-6">
+            <Outlet />
+          </main>
+        </div>
+      </SidebarProvider>
+    );
 }

@@ -32,7 +32,7 @@ export default function Home() {
                       ? '/admin/users'
                       : user?.role === 'Manager'
                         ? '/manager/dashboard'
-                        : '/employee/enrollments'
+                        : '/employee/dashboard'
                   }
                 >
                   <Button size="lg" className="bg-indigo-600 hover:bg-indigo-700 text-white px-8">
