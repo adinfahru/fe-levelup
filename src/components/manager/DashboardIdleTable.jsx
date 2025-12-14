@@ -18,11 +18,15 @@ import {
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import DashboardDetailModal from "@/components/manager/DashboardDetailModal";
-
+import { dashboardAPI } from "@/api/dashboard.api";
 
 import { Eye, RefreshCw } from "lucide-react";
 
-export default function DashboardIdleTable({ data, onView, onToggleStatus }) {
+export default function DashboardIdleTable({
+  data = [],
+  managerId,
+  onToggleStatus,
+}) {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [page, setPage] = useState(1);
@@ -30,16 +34,15 @@ export default function DashboardIdleTable({ data, onView, onToggleStatus }) {
   const [selectedUser, setSelectedUser] = useState(null);
   const [openDetail, setOpenDetail] = useState(false);
 
-  const pageSize = 3;
+  const pageSize = 5;
 
-  // Filter
   const filtered = useMemo(() => {
     return data.filter((item) => {
+      const fullName = `${item.firstName} ${item.lastName}`.toLowerCase();
+
       const matchSearch =
-        `${item.firstName} ${item.lastName}`
-          .toLowerCase()
-          .includes(search.toLowerCase()) ||
-        item.email.toLowerCase().includes(search.toLowerCase());
+        fullName.includes(search.toLowerCase()) ||
+        item.email?.toLowerCase().includes(search.toLowerCase());
 
       const matchStatus =
         statusFilter === "all" || item.status === statusFilter;
@@ -91,8 +94,8 @@ export default function DashboardIdleTable({ data, onView, onToggleStatus }) {
         </TableHeader>
 
         <TableBody>
-          {paginated.map((user, i) => (
-            <TableRow key={i}>
+          {paginated.map((user) => (
+            <TableRow key={user.id}>
               <TableCell>{user.firstName}</TableCell>
               <TableCell>{user.lastName}</TableCell>
               <TableCell>{user.email}</TableCell>
@@ -109,51 +112,54 @@ export default function DashboardIdleTable({ data, onView, onToggleStatus }) {
                 </span>
               </TableCell>
 
-              {/* ACTION BUTTONS */}
               <TableCell className="text-right">
-                <div className="flex items-center justify-end gap-3">
+  <div className="flex justify-end gap-3 items-center">
+    
+    {/* VIEW BUTTON */}
+    <div className="relative z-20">
+      <Button
+        size="sm"
+        variant="outline"
+        onClick={async (e) => {
+          e.stopPropagation(); // ⬅️ PENTING
+          try {
+            const res = await dashboardAPI.getEmployeeDetail(
+              user.id,
+              managerId
+            );
 
-                  {/* View Button */}
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => {
-                      setSelectedUser({
-                        id: user.id,
-                        firstName: user.firstName,
-                        lastName: user.lastName,
-                        email: user.email,
-                        status: user.status,
-                        role: user.role ?? "Unknown",
-                        positionName: user.positionName ?? "-",
-                      });
-                    setOpenDetail(true);
-                  }}
-                  >
-                    <Eye className="w-4 h-4" />
-                  </Button>
+            setSelectedUser({
+              ...res.data,
+              status: res.data.isIdle ? "Idle" : "Active",
+            });
 
-                  {/* Toggle Switch */}
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs text-gray-500">
-                      {user.status === "Active" ? "Active" : "Idle"}
-                    </span>
+            setOpenDetail(true);
+          } catch (err) {
+            console.error(err);
+          }
+        }}
+      >
+        <Eye className="w-4 h-4" />
+      </Button>
+    </div>
 
-                    <Switch
-                      checked={user.status === "Idle"}
-                      onCheckedChange={() => onToggleStatus?.(user)}
-                    />
-                  </div>
+    {/* SWITCH */}
+    <Switch
+    checked={user.isIdle}
+    onCheckedChange={() => onToggleStatus(user)}
+  />
 
-                </div>
-              </TableCell>
+
+  </div>
+</TableCell>
+
             </TableRow>
           ))}
 
           {paginated.length === 0 && (
             <TableRow>
               <TableCell colSpan={5} className="text-center py-6">
-                No results found.
+                No data found
               </TableCell>
             </TableRow>
           )}
@@ -161,7 +167,7 @@ export default function DashboardIdleTable({ data, onView, onToggleStatus }) {
       </Table>
 
       {/* Pagination */}
-      <div className="flex justify-between items-center pt-2">
+      <div className="flex justify-between">
         <p className="text-sm">
           Showing {paginated.length} of {filtered.length}
         </p>
@@ -169,26 +175,21 @@ export default function DashboardIdleTable({ data, onView, onToggleStatus }) {
         <div className="flex gap-2">
           <Button
             variant="outline"
-            onClick={() => setPage((p) => Math.max(1, p - 1))}
             disabled={page === 1}
+            onClick={() => setPage((p) => p - 1)}
           >
             Prev
           </Button>
-
           <Button
             variant="outline"
-            onClick={() =>
-              setPage((p) =>
-                filtered.length > p * pageSize ? p + 1 : p
-              )
-            }
-            disabled={filtered.length <= page * pageSize}
+            disabled={page * pageSize >= filtered.length}
+            onClick={() => setPage((p) => p + 1)}
           >
             Next
           </Button>
         </div>
       </div>
-      {/* Modal Detail */}
+
       <DashboardDetailModal
         open={openDetail}
         onClose={() => setOpenDetail(false)}

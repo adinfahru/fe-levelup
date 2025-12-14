@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useEffect, useMemo } from "react";
 import {
   Table,
   TableBody,
@@ -16,46 +16,58 @@ import {
   SelectItem,
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
+import { dashboardAPI } from "@/api/dashboard.api";
 
-export default function DashboardEnrollTable({ data }) {
+export default function DashboardEnrollTable({ managerId }) {
+  const [enrollments, setEnrollments] = useState([]);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
-
   const [page, setPage] = useState(1);
-  const pageSize = 3;
+  const pageSize = 5;
 
+  // ✅ Fetch enrollments
+  useEffect(() => {
+    const fetchEnrollments = async () => {
+      try {
+        const res = await dashboardAPI.getEnrollmentsByManager(managerId);
+        setEnrollments(res);
+      } catch (err) {
+        console.error("Failed to fetch enrollments:", err);
+      }
+    };
+    fetchEnrollments();
+  }, [managerId]);
+
+  // ✅ Filter & search
   const filtered = useMemo(() => {
-    return data.filter((item) => {
-      const matchSearch =
-        `${item.firstName} ${item.lastName}`
-          .toLowerCase()
-          .includes(search.toLowerCase()) ||
-        item.email.toLowerCase().includes(search.toLowerCase());
-
+    return enrollments.filter((e) => {
+      const fullName = `${e.firstName} ${e.lastName}`.toLowerCase();
+      const matchSearch = fullName.includes(search.toLowerCase()) || e.email.toLowerCase().includes(search.toLowerCase());
       const matchStatus =
-        statusFilter === "all" || item.status === statusFilter;
-
+        statusFilter === "all" ||
+        (statusFilter === "Idle" ? e.isIdle : !e.isIdle);
       return matchSearch && matchStatus;
     });
-  }, [search, statusFilter, data]);
+  }, [enrollments, search, statusFilter]);
 
+  // ✅ Pagination
   const paginated = useMemo(() => {
     const start = (page - 1) * pageSize;
     return filtered.slice(start, start + pageSize);
-  }, [page, filtered]);
+  }, [filtered, page]);
 
   return (
     <div className="space-y-4 p-4 border rounded-xl bg-white shadow-sm">
       <h2 className="text-xl font-semibold">List User Enroll</h2>
 
-      <div className="flex gap-3">
+      {/* Search & Filter */}
+      <div className="flex gap-3 mb-2">
         <Input
           placeholder="Search user..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="max-w-xs"
         />
-
         <Select value={statusFilter} onValueChange={setStatusFilter}>
           <SelectTrigger className="w-40">
             <SelectValue placeholder="Status" />
@@ -68,6 +80,7 @@ export default function DashboardEnrollTable({ data }) {
         </Select>
       </div>
 
+      {/* Table */}
       <Table>
         <TableHeader>
           <TableRow>
@@ -79,32 +92,38 @@ export default function DashboardEnrollTable({ data }) {
         </TableHeader>
 
         <TableBody>
-          {paginated.map((user, i) => (
-            <TableRow key={i}>
+          {paginated.map((user) => (
+            <TableRow key={user.employeeId}>
               <TableCell>{user.firstName}</TableCell>
               <TableCell>{user.lastName}</TableCell>
               <TableCell>{user.email}</TableCell>
               <TableCell>
                 <span
                   className={`px-2 py-1 rounded text-xs ${
-                    user.status === "Idle"
-                      ? "bg-green-100 text-green-700"
-                      : "bg-blue-100 text-blue-700"
+                    user.isIdle ? "bg-green-100 text-green-700" : "bg-blue-100 text-blue-700"
                   }`}
                 >
-                  {user.status}
+                  {user.isIdle ? "Idle" : "Active"}
                 </span>
               </TableCell>
             </TableRow>
           ))}
+
+          {paginated.length === 0 && (
+            <TableRow>
+              <TableCell colSpan={4} className="text-center py-6">
+                No data found
+              </TableCell>
+            </TableRow>
+          )}
         </TableBody>
       </Table>
 
+      {/* Pagination */}
       <div className="flex justify-between items-center pt-2">
         <p className="text-sm">
           Showing {paginated.length} of {filtered.length}
         </p>
-
         <div className="flex gap-2">
           <Button
             variant="outline"
@@ -113,7 +132,6 @@ export default function DashboardEnrollTable({ data }) {
           >
             Prev
           </Button>
-
           <Button
             variant="outline"
             onClick={() =>

@@ -1,78 +1,93 @@
-import DashboardIdleTable from '@/components/manager/DashboardIdleTable';
-import DashboardEnrollTable from '@/components/manager/DashboardEnrollTable';
-import DashboardStats from '@/components/manager/DashboardStats';
-
-// Dummy data for enrollments - API not ready yet
-const dummyEnrollments = [
-  {
-    id: 1,
-    employeeName: 'John Doe',
-    moduleName: 'React Advanced',
-    status: 'Active',
-    progress: 75,
-    startDate: '2024-01-15',
-    endDate: '2024-03-15',
-  },
-  {
-    id: 2,
-    employeeName: 'Jane Smith',
-    moduleName: 'Node.js Fundamentals',
-    status: 'Active',
-    progress: 50,
-    startDate: '2024-02-01',
-    endDate: '2024-04-01',
-  },
-  {
-    id: 3,
-    employeeName: 'Bob Johnson',
-    moduleName: 'Database Design',
-    status: 'Idle',
-    progress: 0,
-    startDate: null,
-    endDate: null,
-  },
-  {
-    id: 4,
-    employeeName: 'Alice Williams',
-    moduleName: 'Python Basics',
-    status: 'Active',
-    progress: 90,
-    startDate: '2024-01-01',
-    endDate: '2024-03-01',
-  },
-  {
-    id: 5,
-    employeeName: 'Charlie Brown',
-    moduleName: 'DevOps Essentials',
-    status: 'Idle',
-    progress: 0,
-    startDate: null,
-    endDate: null,
-  },
-];
+import { useEffect, useState } from "react";
+import DashboardIdleTable from "@/components/manager/DashboardIdleTable";
+import DashboardEnrollTable from "@/components/manager/DashboardEnrollTable";
+import DashboardStats from "@/components/manager/DashboardStats";
+import { dashboardAPI } from "@/api/dashboard.api";
 
 export default function ManagerDashboard() {
-  const enrollments = dummyEnrollments;
+  const managerId = "218C7F05-722C-4A74-B7B6-AC7BE3F1E0DC";
 
-  // Filter enrollments to get idle and currently enrolled
-  const idleEmployees = (enrollments || []).filter((e) => e.status === 'Idle');
-  const activeEnrollments = (enrollments || []).filter((e) => e.status === 'Active');
+  const [employees, setEmployees] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  /* =========================
+      FETCH ALL EMPLOYEES
+  ========================= */
+  useEffect(() => {
+    const fetchEmployees = async () => {
+      setLoading(true);
+      try {
+        const res = await dashboardAPI.getEmployees(managerId);
+
+        const mapped = res.data.map((e) => ({
+          ...e,
+          status: e.isIdle ? "Idle" : "Active", // UI ONLY
+        }));
+
+        setEmployees(mapped);
+      } catch (err) {
+        console.error("Fetch employees failed:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchEmployees();
+  }, [managerId]);
+
+  /* =========================
+      TOGGLE STATUS (PATCH)
+  ========================= */
+  const handleToggleStatus = async (user) => {
+    const newIsIdle = !user.isIdle;
+
+    try {
+      await dashboardAPI.updateEmployeeStatus(user.id, newIsIdle);
+
+      setEmployees((prev) =>
+        prev.map((e) =>
+          e.id === user.id
+            ? {
+                ...e,
+                isIdle: newIsIdle,
+                status: newIsIdle ? "Idle" : "Active",
+              }
+            : e
+        )
+      );
+    } catch (err) {
+      console.error("Update status failed:", err);
+    }
+  };
+
+  const activeEmployees = employees.filter((e) => !e.isIdle);
 
   return (
-    <div className="p-4">
-      <h2 className="text-2xl font-bold">Manager Dashboard</h2>
-      <p className="mb-4">Dashboard overview and statistics</p>
+    <div className="p-4 space-y-6">
+      <div>
+        <h2 className="text-2xl font-bold">Manager Dashboard</h2>
+        <p className="text-gray-500">Overview & employee monitoring</p>
+      </div>
 
-      {/* ==== 3 Cards ==== */}
-      <DashboardStats data={enrollments || []} />
+      {/* ==== STATS ==== */}
+      <DashboardStats managerId={managerId} />
 
-      {/* ==== Tables ==== */}
-      <DashboardEnrollTable data={activeEnrollments} />
-      <DashboardIdleTable
-        data={idleEmployees}
-        onView={(user) => console.log('View user detail:', user)}
-        onToggleStatus={(user) => console.log('Toggle:', user)}
-      />
+      {loading ? (
+        <p className="text-sm text-gray-500">Loading employees...</p>
+      ) : (
+        <>
+          {/* ==== ACTIVE / ENROLL ==== */}
+          <DashboardEnrollTable managerId={managerId} />
+
+          {/* ==== ALL EMPLOYEES ==== */}
+          <DashboardIdleTable
+            data={employees}
+            managerId={managerId}
+            onToggleStatus={handleToggleStatus}
+          />
+
+        </>
+      )}
     </div>
   );
 }
