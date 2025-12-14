@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { Link } from '@tanstack/react-router';
+import { useNavigate } from '@tanstack/react-router';
 import {
   Table,
   TableBody,
@@ -10,32 +10,30 @@ import {
 } from '@/components/ui/table';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { positionsAPI } from '@/api/positions.api';
 
-export default function UsersTable() {
-  // Dummy data
-  const [data, setData] = useState([
-    { positionId: 1, title: 'Employee', status: 'active' },
-    { positionId: 2, title: 'Manager', status: 'active' },
-    { positionId: 3, title: 'Admin', status: 'active' },
-  ]);
+export default function PositionsTable({ positions }) {
+  const navigate = useNavigate();
 
-  // Search 
+  // Search
   const [search, setSearch] = useState('');
 
   // Pagination
   const [page, setPage] = useState(1);
-  const pageSize = 2;
+  const pageSize = 10;
 
   // Filtered Data
   const filtered = useMemo(() => {
-    return data.filter((item) => {
+    if (!positions || !Array.isArray(positions)) return [];
+
+    return positions.filter((item) => {
       const matchSearch =
-        item.title.toLowerCase().includes(search.toLowerCase()) ||
-        item.status.toLowerCase().includes(search.toLowerCase());
+        item.title?.toLowerCase().includes(search.toLowerCase()) ||
+        (item.isActive ? 'active' : 'inactive').includes(search.toLowerCase());
 
       return matchSearch;
     });
-  }, [search, data]);
+  }, [search, positions]);
 
   // Pagination sliced
   const paginated = useMemo(() => {
@@ -44,10 +42,16 @@ export default function UsersTable() {
   }, [page, filtered]);
 
   // Delete handler
-  function handleDelete(id) {
+  async function handleDelete(id) {
     if (!confirm('Are you sure you want to delete this position?')) return;
 
-    setData((prev) => prev.filter((u) => u.positionId !== id));
+    try {
+      await positionsAPI.delete(id);
+      // Refresh the page to reload data
+      window.location.reload();
+    } catch (error) {
+      alert('Failed to delete position: ' + error.message);
+    }
   }
 
   return (
@@ -60,7 +64,6 @@ export default function UsersTable() {
           onChange={(e) => setSearch(e.target.value)}
           className="max-w-xs"
         />
-
       </div>
 
       {/* Table */}
@@ -68,7 +71,7 @@ export default function UsersTable() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>PositionId</TableHead>
+              <TableHead>No</TableHead>
               <TableHead>Title</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Action</TableHead>
@@ -76,34 +79,48 @@ export default function UsersTable() {
           </TableHeader>
 
           <TableBody>
-            {paginated.map((position) => (
-              <TableRow key={position.positionId}>
-                <TableCell>{position.positionId}</TableCell>
-                <TableCell>{position.title}</TableCell>
-                <TableCell>{position.status}</TableCell>
+            {paginated.length > 0 ? (
+              paginated.map((position, index) => (
+                <TableRow key={position.id}>
+                  <TableCell>{(page - 1) * pageSize + index + 1}</TableCell>
+                  <TableCell>{position.title}</TableCell>
+                  <TableCell>
+                    <span
+                      className={`px-2 py-1 text-xs rounded-full ${
+                        position.isActive
+                          ? 'bg-green-100 text-green-800'
+                          : 'bg-red-100 text-red-800'
+                      }`}
+                    >
+                      {position.isActive ? 'Active' : 'Inactive'}
+                    </span>
+                  </TableCell>
 
-                <TableCell className="flex gap-2">
-                  <Link to={`/admin/positions/${position.positionId}`}>
-                    <Button variant="outline" size="sm">
+                  <TableCell className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() =>
+                        navigate({ to: '/admin/positions/edit/$id', params: { id: position.id } })
+                      }
+                    >
                       Edit
                     </Button>
-                  </Link>
 
-                  <Button
-                    variant="destructive"
-                    size="sm"
-                    onClick={() => handleDelete(position.positionId)}
-                  >
-                    Delete
-                  </Button>
-                </TableCell>
-              </TableRow>
-            ))}
-
-            {paginated.length === 0 && (
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      onClick={() => handleDelete(position.id)}
+                    >
+                      Delete
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))
+            ) : (
               <TableRow>
-                <TableCell colSpan={4} className="text-center py-6">
-                  No results found.
+                <TableCell colSpan={4} className="text-center text-gray-500 py-6">
+                  No positions found
                 </TableCell>
               </TableRow>
             )}

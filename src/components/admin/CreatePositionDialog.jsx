@@ -7,59 +7,77 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectTrigger,
-  SelectValue,
-  SelectContent,
-  SelectItem,
-} from "@/components/ui/select";
 import { useState } from "react";
+import { positionsAPI } from "@/api/positions.api";
 
 export default function CreatePositionDialog({ open, onOpenChange }) {
   // FORM STATES
   const [title, setTitle] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setError("");
+    setLoading(true);
 
-    const payload = {
-      title
-    };
-
-    console.log("Payload:", payload);
-
-    fetch("/api/users", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
-
-    onOpenChange(false);
+    try {
+      const payload = { title };
+      await positionsAPI.create(payload);
+      
+      setTitle("");
+      onOpenChange(false);
+      // Refresh page to reload positions
+      window.location.reload();
+    } catch (err) {
+      setError(err.message || "Failed to create position");
+      setLoading(false);
+    }
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>Create New Postion</DialogTitle>
+          <DialogTitle>Create New Position</DialogTitle>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-
           {/* TITLE */}
           <div>
-            <label className="text-sm font-medium">Title</label>
+            <label className="text-sm font-medium">Position Title</label>
             <Input
+              type="text"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              placeholder="Title"
+              placeholder="e.g., Senior Developer"
+              required
+              maxLength={100}
             />
           </div>
 
+          {/* Error Message */}
+          {error && (
+            <div className="bg-red-50 border border-red-200 rounded p-3">
+              <p className="text-sm text-red-700">{error}</p>
+            </div>
+          )}
+
           <DialogFooter>
-            <Button type="submit" className="bg-indigo-600 text-white">
-              Save
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => onOpenChange(false)}
+              disabled={loading}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="submit"
+              disabled={loading}
+              className="bg-indigo-600 hover:bg-indigo-700"
+            >
+              {loading ? "Creating..." : "Create"}
             </Button>
           </DialogFooter>
         </form>
@@ -67,3 +85,4 @@ export default function CreatePositionDialog({ open, onOpenChange }) {
     </Dialog>
   );
 }
+      
