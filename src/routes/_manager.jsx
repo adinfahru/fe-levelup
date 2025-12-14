@@ -1,37 +1,26 @@
-import { createFileRoute, Outlet, useNavigate } from "@tanstack/react-router";
-import { SidebarProvider } from "@/components/ui/sidebar";
-import { LayoutDashboard, BookOpen, Users } from "lucide-react";
-import AppSidebar from "@/components/ui/sidebar/AppSidebar";
+import { createFileRoute, redirect } from '@tanstack/react-router';
+import ManagerLayout from '../components/layout/ManagerLayout';
 
-export const Route = createFileRoute("/_manager")({
+export const Route = createFileRoute('/_manager')({
   component: ManagerLayout,
+  beforeLoad: async () => {
+    const token = localStorage.getItem('token');
+    const userData = localStorage.getItem('user');
+
+    if (!token || !userData) {
+      throw redirect({
+        to: '/login',
+        search: { redirect: location.href },
+      });
+    }
+
+    try {
+      const user = JSON.parse(userData);
+      if (user.role !== 'Manager') {
+        throw redirect({ to: '/' });
+      }
+    } catch {
+      throw redirect({ to: '/login' });
+    }
+  },
 });
-
-const managerItems = [
-  { title: "Dashboard", to: "/manager/dashboard", icon: LayoutDashboard },
-  { title: "Modules", to: "/manager/modules", icon: BookOpen },
-  { title: "Employees", to: "/manager/employees", icon: Users },
-];
-
-function ManagerLayout() {
-  const navigate = useNavigate();
-
-  const handleLogout = () => {
-    localStorage.removeItem("token");
-    navigate({ to: "/login" });
-  };
-
-  return (
-    <SidebarProvider>
-      <div className="flex h-screen w-full">
-        {/* Sidebar component */}
-        <AppSidebar title="Manager Panel" items={managerItems} onLogout={handleLogout} />
-
-        {/* Main content */}
-        <main className="flex-1 overflow-y-auto p-6">
-          <Outlet />
-        </main>
-      </div>
-    </SidebarProvider>
-  );
-}

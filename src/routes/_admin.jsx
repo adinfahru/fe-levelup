@@ -1,32 +1,26 @@
-import { createFileRoute, Outlet, useNavigate } from '@tanstack/react-router';
-import { SidebarProvider } from '@/components/ui/sidebar';
-import { Building, User } from 'lucide-react';
-import AppSidebar from '@/components/ui/sidebar/AppSidebar';
+import { createFileRoute, redirect } from '@tanstack/react-router';
+import AdminLayout from '../components/layout/AdminLayout';
 
 export const Route = createFileRoute('/_admin')({
   component: AdminLayout,
+  beforeLoad: async () => {
+    const token = localStorage.getItem('token');
+    const userData = localStorage.getItem('user');
+
+    if (!token || !userData) {
+      throw redirect({
+        to: '/login',
+        search: { redirect: location.href },
+      });
+    }
+
+    try {
+      const user = JSON.parse(userData);
+      if (user.role !== 'Admin') {
+        throw redirect({ to: '/' });
+      }
+    } catch {
+      throw redirect({ to: '/login' });
+    }
+  },
 });
-
-const adminItems = [
-  { title: 'Users', to: '/admin/users', icon: User },
-  { title: 'Positions', to: '/admin/positions', icon: Building },
-];
-
-function AdminLayout() {
-  const navigate = useNavigate(); 
-  const handleLogout = () => {
-    localStorage.removeItem('token');
-    navigate({ to: '/login' });
-  };
-
-  return (
-    <SidebarProvider>
-      <div className="flex h-screen w-full">
-        <AppSidebar title="Admin Panel" items={adminItems} onLogout={handleLogout} />
-        <main className="flex-1 overflow-y-auto p-6">
-          <Outlet />
-        </main>
-      </div>
-    </SidebarProvider>
-  );
-}
