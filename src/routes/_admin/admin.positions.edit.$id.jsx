@@ -1,0 +1,32 @@
+import { createFileRoute } from '@tanstack/react-router';
+import { positionsAPI } from '../../api/positions.api';
+import PositionFormComponent from '@/components/admin/PositionForm';
+
+function EditPosition() {
+  const { position } = Route.useLoaderData();
+
+  return (
+    <div className="space-y-6 p-6">
+      <div>
+        <h1 className="text-3xl font-bold text-gray-900">Edit Position</h1>
+        <p className="text-gray-600 mt-1">Update position information</p>
+      </div>
+
+      <div className="max-w-2xl bg-white rounded-lg border border-gray-200 shadow-sm">
+        <PositionFormComponent
+          position={position}
+          onSuccess={() => (window.location.href = '/admin/positions')}
+          onCancel={() => window.history.back()}
+        />
+      </div>
+    </div>
+  );
+}
+
+export const Route = createFileRoute('/_admin/admin/positions/edit/$id')({
+  component: EditPosition,
+  loader: async ({ params }) => {
+    const position = await positionsAPI.getById(params.id);
+    return { position };
+  },
+});
