@@ -8,7 +8,7 @@ import { ModuleCard } from '@/components/employee/ModuleCard';
 const Route = getRouteApi('/_employee/employee/dashboard');
 
 export default function ModuleList() {
-  const navigate = useNavigate();
+  // const navigate = useNavigate();
   const [search, setSearch] = useState('');
   const data = Route.useLoaderData();
 

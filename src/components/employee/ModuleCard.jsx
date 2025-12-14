@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 export function ModuleCard({ data }) {
   return (
     <Link
-      to="/employee/module/detail"
+      to={`/employee/module/${data.id}`}
       className="block"
     >
       <Card className="shadow-sm border border-gray-200 hover:shadow-md transition-all cursor-pointer">
