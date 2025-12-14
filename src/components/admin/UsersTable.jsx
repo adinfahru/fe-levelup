@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { Link } from '@tanstack/react-router';
+import { useNavigate } from '@tanstack/react-router';
 import {
   Table,
   TableBody,
@@ -17,47 +17,26 @@ import {
   SelectItem,
 } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
+import { usersAPI } from '@/api/users.api';
 
-export default function UsersTable() {
-  // Dummy data menyesuaikan BE
-  const [data, setData] = useState([
-    {
-      accountId: 1,
-      email: 'imamm@mail.com',
-      role: 'admin',
-      status: 'active',
-      firstName: 'Imam',
-      lastName: 'Zuhdi',
-      positionId: 1,
-    },
-    {
-      accountId: 2,
-      email: 'imamz@mail.com',
-      role: 'employee',
-      status: 'active',
-      firstName: 'Imam',
-      lastName: 'Zuhdi',
-      positionId: 1,
-    },
-    {
-      accountId: 3,
-      email: 'imami@mail.com',
-      role: 'manager',
-      status: 'active',
-      firstName: 'Imam',
-      lastName: 'Zuhdi',
-      positionId: 1,
-    },
-    {
-      accountId: 4,
-      email: 'imamw@mail.com',
-      role: 'employee',
-      status: 'active',
-      firstName: 'Imam',
-      lastName: 'Zuhdi',
-      positionId: 1,
-    },
-  ]);
+export default function UsersTable({ users, positions }) {
+  const navigate = useNavigate();
+
+  // Create a map of positionId to position title for quick lookup
+  const positionMap = useMemo(() => {
+    const map = {};
+    if (positions && Array.isArray(positions)) {
+      positions.forEach((pos) => {
+        map[pos.id] = pos.title;
+      });
+    }
+    return map;
+  }, [positions]);
+
+  // Helper to get position title from positionId
+  const getPositionTitle = (positionId) => {
+    return positionMap[positionId] || 'N/A';
+  };
 
   // Search + Filter
   const [search, setSearch] = useState('');
@@ -65,21 +44,23 @@ export default function UsersTable() {
 
   // Pagination
   const [page, setPage] = useState(1);
-  const pageSize = 2;
+  const pageSize = 10;
 
   // Filtered data
   const filtered = useMemo(() => {
-    return data.filter((item) => {
+    if (!users || !Array.isArray(users)) return [];
+
+    return users.filter((item) => {
       const matchSearch =
-        item.firstName.toLowerCase().includes(search.toLowerCase()) ||
-        item.lastName.toLowerCase().includes(search.toLowerCase()) ||
-        item.email.toLowerCase().includes(search.toLowerCase());
+        item.firstName?.toLowerCase().includes(search.toLowerCase()) ||
+        item.lastName?.toLowerCase().includes(search.toLowerCase()) ||
+        item.email?.toLowerCase().includes(search.toLowerCase());
 
       const matchRole = roleFilter === 'all' || item.role === roleFilter;
 
       return matchSearch && matchRole;
     });
-  }, [search, roleFilter, data]);
+  }, [search, roleFilter, users]);
 
   const paginated = useMemo(() => {
     const start = (page - 1) * pageSize;
@@ -87,10 +68,15 @@ export default function UsersTable() {
   }, [page, filtered]);
 
   // Delete handler
-  function handleDelete(id) {
+  async function handleDelete(id) {
     if (!confirm('Are you sure you want to delete this user?')) return;
 
-    setData((prev) => prev.filter((u) => u.accountId !== id));
+    try {
+      await usersAPI.delete(id);
+      window.location.reload();
+    } catch (error) {
+      alert('Failed to delete user: ' + error.message);
+    }
   }
 
   return (
@@ -110,9 +96,9 @@ export default function UsersTable() {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All</SelectItem>
-            <SelectItem value="admin">Admin</SelectItem>
-            <SelectItem value="manager">Manager</SelectItem>
-            <SelectItem value="employee">Employee</SelectItem>
+            <SelectItem value="Admin">Admin</SelectItem>
+            <SelectItem value="Manager">Manager</SelectItem>
+            <SelectItem value="Employee">Employee</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -122,50 +108,76 @@ export default function UsersTable() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>AccountId</TableHead>
+              <TableHead>No</TableHead>
+              <TableHead>Name</TableHead>
               <TableHead>Email</TableHead>
               <TableHead>Role</TableHead>
+              <TableHead>Position</TableHead>
               <TableHead>Status</TableHead>
-              <TableHead>FirstName</TableHead>
-              <TableHead>LastName</TableHead>
-              <TableHead>PositionId</TableHead>
               <TableHead>Action</TableHead>
             </TableRow>
           </TableHeader>
 
           <TableBody>
-            {paginated.map((user) => (
-              <TableRow key={user.accountId}>
-                <TableCell>{user.accountId}</TableCell>
-                <TableCell>{user.email}</TableCell>
-                <TableCell className="capitalize">{user.role}</TableCell>
-                <TableCell className="capitalize">{user.status}</TableCell>
-                <TableCell>{user.firstName}</TableCell>
-                <TableCell>{user.lastName}</TableCell>
-                <TableCell>{user.positionId}</TableCell>
+            {paginated.length > 0 ? (
+              paginated.map((user, index) => (
+                <TableRow key={user.accountId}>
+                  <TableCell>{(page - 1) * pageSize + index + 1}</TableCell>
+                  <TableCell>
+                    {user.firstName} {user.lastName}
+                  </TableCell>
+                  <TableCell>{user.email}</TableCell>
+                  <TableCell>
+                    <span
+                      className={`px-2 py-1 text-xs rounded-full ${
+                        user.role === 'Admin'
+                          ? 'bg-purple-100 text-purple-800'
+                          : user.role === 'Manager'
+                            ? 'bg-blue-100 text-blue-800'
+                            : 'bg-green-100 text-green-800'
+                      }`}
+                    >
+                      {user.role}
+                    </span>
+                  </TableCell>
+                  <TableCell>{getPositionTitle(user.positionId)}</TableCell>
+                  <TableCell>
+                    <span
+                      className={`px-2 py-1 text-xs rounded-full ${
+                        user.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                      }`}
+                    >
+                      {user.isActive ? 'Active' : 'Inactive'}
+                    </span>
+                  </TableCell>
 
-                <TableCell className="flex gap-2">
-                  <Link to={`/admin/users/${user.accountId}`}>
-                    <Button variant="outline" size="sm">
-                      Edit
+                  <TableCell className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() =>
+                        navigate({ to: '/admin/users/$id', params: { id: user.accountId } })
+                      }
+                    >
+                      View Details
                     </Button>
-                  </Link>
 
-                  <Button
-                    variant="destructive"
-                    size="sm"
-                    onClick={() => handleDelete(user.accountId)}
-                  >
-                    Delete
-                  </Button>
-                </TableCell>
-              </TableRow>
-            ))}
-
-            {paginated.length === 0 && (
+                    {user.isActive && (
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        onClick={() => handleDelete(user.accountId)}
+                      >
+                        Delete
+                      </Button>
+                    )}
+                  </TableCell>
+                </TableRow>
+              ))
+            ) : (
               <TableRow>
-                <TableCell colSpan={8} className="text-center py-6">
-                  No results found.
+                <TableCell colSpan={7} className="text-center text-gray-500 py-6">
+                  No users found
                 </TableCell>
               </TableRow>
             )}
