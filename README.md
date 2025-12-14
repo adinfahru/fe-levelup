@@ -19,6 +19,7 @@ The LevelUp Frontend provides a modern, responsive interface for:
 - **Build Tool**: Vite 7
 - **Styling**: Tailwind CSS
 - **Routing**: TanStack Router
+- **Table**: TanStack Table
 - **State Management**: TanStack Query (React Query)
 - **HTTP Client**: Fetch
 - **Icons**: Lucide React

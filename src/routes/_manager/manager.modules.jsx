@@ -1,17 +1,12 @@
-import { createFileRoute, Link } from '@tanstack/react-router';
+import { createFileRoute } from '@tanstack/react-router';
+import ModuleList from '../../pages/manager/modules/ModuleList';
+import { modulesAPI } from '@/api/modules.api';
 
 export const Route = createFileRoute('/_manager/manager/modules')({
   component: ModuleList,
+  loader: ({ context }) =>
+    context.queryClient.ensureQueryData({
+      queryKey: ['modules'],
+      queryFn: modulesAPI.getAll,
+    }),
 });
-
-function ModuleList() {
-  return (
-    <div>
-      <h2>Module List</h2>
-      <p>List of training modules</p>
-      <Link to="/manager/modules/create">
-        <button>Create New Module</button>
-      </Link>
-    </div>
-  );
-}

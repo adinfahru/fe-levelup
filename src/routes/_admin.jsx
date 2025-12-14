@@ -1,22 +1,26 @@
-import { createFileRoute, Link, Outlet } from '@tanstack/react-router';
+import { createFileRoute, redirect } from '@tanstack/react-router';
+import AdminLayout from '../components/layout/AdminLayout';
 
 export const Route = createFileRoute('/_admin')({
   component: AdminLayout,
-});
+  beforeLoad: async () => {
+    const token = localStorage.getItem('token');
+    const userData = localStorage.getItem('user');
 
-function AdminLayout() {
-  return (
-    <div>
-      <nav style={{ padding: '1rem', borderBottom: '1px solid #ccc' }}>
-        <h2>Admin Panel</h2>
-        <Link to="/admin/users" style={{ marginRight: '1rem' }}>
-          Users
-        </Link>
-        <Link to="/admin/positions">Positions</Link>
-      </nav>
-      <main style={{ padding: '1rem' }}>
-        <Outlet />
-      </main>
-    </div>
-  );
-}
+    if (!token || !userData) {
+      throw redirect({
+        to: '/login',
+        search: { redirect: location.href },
+      });
+    }
+
+    try {
+      const user = JSON.parse(userData);
+      if (user.role !== 'Admin') {
+        throw redirect({ to: '/' });
+      }
+    } catch {
+      throw redirect({ to: '/login' });
+    }
+  },
+});

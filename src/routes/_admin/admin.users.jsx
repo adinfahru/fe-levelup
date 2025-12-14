@@ -1,17 +1,24 @@
-import { createFileRoute, Link } from '@tanstack/react-router';
+import { Outlet, createFileRoute } from '@tanstack/react-router';
+import { usersAPI } from '@/api/users.api';
+import { positionsAPI } from '@/api/positions.api';
+
+function UsersLayout() {
+  return <Outlet />;
+}
 
 export const Route = createFileRoute('/_admin/admin/users')({
-  component: UserList,
-});
+  component: UsersLayout,
+  loader: async ({ context }) => {
+    const users = await context.queryClient.ensureQueryData({
+      queryKey: ['users'],
+      queryFn: usersAPI.getAll,
+    });
 
-function UserList() {
-  return (
-    <div>
-      <h2>User List</h2>
-      <p>List of all users will be displayed here</p>
-      <Link to="/admin/users/create">
-        <button>Create New User</button>
-      </Link>
-    </div>
-  );
-}
+    const positions = await context.queryClient.ensureQueryData({
+      queryKey: ['positions'],
+      queryFn: positionsAPI.getAll,
+    });
+
+    return { users, positions };
+  },
+});

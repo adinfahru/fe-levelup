@@ -1,25 +1,26 @@
-import { createFileRoute, Link, Outlet } from '@tanstack/react-router';
+import { createFileRoute, redirect } from '@tanstack/react-router';
+import EmployeeLayout from '../components/layout/EmployeeLayout';
 
 export const Route = createFileRoute('/_employee')({
   component: EmployeeLayout,
-});
+  beforeLoad: async () => {
+    const token = localStorage.getItem('token');
+    const userData = localStorage.getItem('user');
 
-function EmployeeLayout() {
-  return (
-    <div>
-      <nav style={{ padding: '1rem', borderBottom: '1px solid #ccc' }}>
-        <h2>Employee Panel</h2>
-        <Link to="/employee/enrollments" style={{ marginRight: '1rem' }}>
-          My Enrollment
-        </Link>
-        <Link to="/employee/history" style={{ marginRight: '1rem' }}>
-          History
-        </Link>
-        <Link to="/employee/submission">Submit Work</Link>
-      </nav>
-      <main style={{ padding: '1rem' }}>
-        <Outlet />
-      </main>
-    </div>
-  );
-}
+    if (!token || !userData) {
+      throw redirect({
+        to: '/login',
+        search: { redirect: location.href },
+      });
+    }
+
+    try {
+      const user = JSON.parse(userData);
+      if (user.role !== 'Employee') {
+        throw redirect({ to: '/' });
+      }
+    } catch {
+      throw redirect({ to: '/login' });
+    }
+  },
+});

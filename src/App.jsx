@@ -1,7 +1,5 @@
-import AppRouter from './router/AppRouter';
-
 function App() {
-  return <AppRouter />;
+  return <div>App component is not used - router is in main.jsx</div>;
 }
 
 export default App;

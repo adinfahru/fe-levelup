@@ -1,25 +1,26 @@
-import { createFileRoute, Link, Outlet } from '@tanstack/react-router';
+import { createFileRoute, redirect } from '@tanstack/react-router';
+import ManagerLayout from '../components/layout/ManagerLayout';
 
 export const Route = createFileRoute('/_manager')({
   component: ManagerLayout,
-});
+  beforeLoad: async () => {
+    const token = localStorage.getItem('token');
+    const userData = localStorage.getItem('user');
 
-function ManagerLayout() {
-  return (
-    <div>
-      <nav style={{ padding: '1rem', borderBottom: '1px solid #ccc' }}>
-        <h2>Manager Panel</h2>
-        <Link to="/manager/dashboard" style={{ marginRight: '1rem' }}>
-          Dashboard
-        </Link>
-        <Link to="/manager/modules" style={{ marginRight: '1rem' }}>
-          Modules
-        </Link>
-        <Link to="/manager/employees">Employees</Link>
-      </nav>
-      <main style={{ padding: '1rem' }}>
-        <Outlet />
-      </main>
-    </div>
-  );
-}
+    if (!token || !userData) {
+      throw redirect({
+        to: '/login',
+        search: { redirect: location.href },
+      });
+    }
+
+    try {
+      const user = JSON.parse(userData);
+      if (user.role !== 'Manager') {
+        throw redirect({ to: '/' });
+      }
+    } catch {
+      throw redirect({ to: '/login' });
+    }
+  },
+});
