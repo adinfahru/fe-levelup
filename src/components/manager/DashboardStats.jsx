@@ -1,21 +1,21 @@
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Users, UserCheck, Layers } from "lucide-react";
 
-export default function DashboardStats() {
+export default function DashboardStats({ totalIdle, totalEnroll, totalModules }) {
   const stats = [
     {
       title: "Total User Idle",
-      value: 27,
+      value: totalIdle,
       icon: <Users className="h-10 w-10 text-indigo-800" />,
     },
     {
       title: "Total User Enroll",
-      value: 25,
+      value: totalEnroll,
       icon: <UserCheck className="h-10 w-10 text-indigo-800" />,
     },
     {
       title: "Total Module",
-      value: 8,
+      value: totalModules,
       icon: <Layers className="h-10 w-10 text-indigo-800" />,
     },
   ];

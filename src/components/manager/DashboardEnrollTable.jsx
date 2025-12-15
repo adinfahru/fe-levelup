@@ -1,4 +1,5 @@
-import { useState, useMemo } from "react";
+import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import {
   Table,
   TableBody,
@@ -15,55 +16,63 @@ import {
   SelectContent,
   SelectItem,
 } from "@/components/ui/select";
-import { Button } from "@/components/ui/button";
 
-export default function DashboardEnrollTable({ data }) {
+export default function DashboardEnrollTable({ enrollments = [] }) {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
-
   const [page, setPage] = useState(1);
-  const pageSize = 3;
+  const pageSize = 5;
 
-  const filtered = useMemo(() => {
-    return data.filter((item) => {
-      const matchSearch =
-        `${item.firstName} ${item.lastName}`
-          .toLowerCase()
-          .includes(search.toLowerCase()) ||
-        item.email.toLowerCase().includes(search.toLowerCase());
+  const { data: paginated = [] } = useQuery({
+    queryKey: ["enrollments-view", enrollments, search, statusFilter, page],
+    queryFn: () => enrollments, // data sudah ada
+    select: (data) => {
+      const filtered = data.filter((e) => {
+        const fullName = `${e.firstName} ${e.lastName}`.toLowerCase();
+        const matchSearch =
+          fullName.includes(search.toLowerCase()) ||
+          e.email?.toLowerCase().includes(search.toLowerCase());
+        const matchStatus =
+          statusFilter === "all" || e.enrollmentStatus === statusFilter;
+        return matchSearch && matchStatus;
+      });
 
-      const matchStatus =
-        statusFilter === "all" || item.status === statusFilter;
-
-      return matchSearch && matchStatus;
-    });
-  }, [search, statusFilter, data]);
-
-  const paginated = useMemo(() => {
-    const start = (page - 1) * pageSize;
-    return filtered.slice(start, start + pageSize);
-  }, [page, filtered]);
+      const start = (page - 1) * pageSize;
+      return filtered.slice(start, start + pageSize);
+    },
+    keepPreviousData: true,
+  });
 
   return (
     <div className="space-y-4 p-4 border rounded-xl bg-white shadow-sm">
       <h2 className="text-xl font-semibold">List User Enroll</h2>
 
-      <div className="flex gap-3">
+      {/* Search & Filter */}
+      <div className="flex gap-3 mb-2">
         <Input
           placeholder="Search user..."
           value={search}
-          onChange={(e) => setSearch(e.target.value)}
+          onChange={(e) => {
+            setSearch(e.target.value);
+            setPage(1);
+          }}
           className="max-w-xs"
         />
-
-        <Select value={statusFilter} onValueChange={setStatusFilter}>
+        <Select
+          value={statusFilter}
+          onValueChange={(val) => {
+            setStatusFilter(val);
+            setPage(1);
+          }}
+        >
           <SelectTrigger className="w-40">
             <SelectValue placeholder="Status" />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All</SelectItem>
-            <SelectItem value="Idle">Idle</SelectItem>
-            <SelectItem value="Active">Active</SelectItem>
+            <SelectItem value="OnGoing">OnGoing</SelectItem>
+            <SelectItem value="Paused">Paused</SelectItem>
+            <SelectItem value="Completed">Completed</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -74,59 +83,44 @@ export default function DashboardEnrollTable({ data }) {
             <TableHead>First Name</TableHead>
             <TableHead>Last Name</TableHead>
             <TableHead>Email</TableHead>
-            <TableHead>Status</TableHead>
+            <TableHead>Status User</TableHead>
+            <TableHead>Status Enroll</TableHead>
           </TableRow>
         </TableHeader>
-
         <TableBody>
-          {paginated.map((user, i) => (
-            <TableRow key={i}>
+          {paginated.map((user) => (
+            <TableRow key={user.employeeId}>
               <TableCell>{user.firstName}</TableCell>
               <TableCell>{user.lastName}</TableCell>
               <TableCell>{user.email}</TableCell>
               <TableCell>
                 <span
-                  className={`px-2 py-1 rounded text-xs ${
-                    user.status === "Idle"
+                  className={`px-2 py-1 rounded text-xs font-medium ${
+                    user.isIdle
                       ? "bg-green-100 text-green-700"
                       : "bg-blue-100 text-blue-700"
                   }`}
                 >
-                  {user.status}
+                  {user.isIdle ? "Idle" : "Not Idle"}
+                </span>
+              </TableCell>
+              <TableCell>
+                <span
+                  className={`px-2 py-1 rounded text-xs font-medium ${
+                    user.enrollmentStatus === "OnGoing"
+                      ? "bg-yellow-100 text-yellow-700"
+                      : user.enrollmentStatus === "Paused"
+                      ? "bg-orange-100 text-orange-700"
+                      : "bg-green-100 text-green-700"
+                  }`}
+                >
+                  {user.enrollmentStatus}
                 </span>
               </TableCell>
             </TableRow>
           ))}
         </TableBody>
       </Table>
-
-      <div className="flex justify-between items-center pt-2">
-        <p className="text-sm">
-          Showing {paginated.length} of {filtered.length}
-        </p>
-
-        <div className="flex gap-2">
-          <Button
-            variant="outline"
-            onClick={() => setPage((p) => Math.max(1, p - 1))}
-            disabled={page === 1}
-          >
-            Prev
-          </Button>
-
-          <Button
-            variant="outline"
-            onClick={() =>
-              setPage((p) =>
-                filtered.length > p * pageSize ? p + 1 : p
-              )
-            }
-            disabled={filtered.length <= page * pageSize}
-          >
-            Next
-          </Button>
-        </div>
-      </div>
     </div>
   );
 }
