@@ -76,17 +76,18 @@ export const dashboardAPI = {
    * PATCH Update Employee Idle Status
    * PATCH /api/v1/dashboard/employee/{id}/status?isIdle=true|false
    */
-  updateEmployeeStatus: async (employeeId, isIdle) => {
-    const res = await fetch(
-      `${API_BASE_URL}/dashboard/employee/${employeeId}/status?isIdle=${isIdle}`,
-      {
-        method: "PATCH",
-        headers: getHeaders(),
-      }
-    );
+updateEmployeeStatus: async (employeeId, isIdle) => {
+  const res = await fetch(
+    `${API_BASE_URL}/dashboard/employee/${employeeId}/status`,
+    {
+      method: "PATCH",
+      headers: getHeaders(),
+      body: JSON.stringify({ isIdle }), // <-- kirim di body
+    }
+  );
+  return handleResponse(res);
+},
 
-    return handleResponse(res);
-  },
 
 
   getEnrollmentsByManager: async (managerId) => {

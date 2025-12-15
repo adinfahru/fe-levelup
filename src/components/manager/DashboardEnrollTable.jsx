@@ -18,34 +18,18 @@ import {
 import { Button } from "@/components/ui/button";
 import { dashboardAPI } from "@/api/dashboard.api";
 
-export default function DashboardEnrollTable({ managerId }) {
-  const [enrollments, setEnrollments] = useState([]);
+export default function DashboardEnrollTable({ managerId, enrollments }) {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [page, setPage] = useState(1);
   const pageSize = 5;
 
-  // ✅ Fetch enrollments
-  useEffect(() => {
-    const fetchEnrollments = async () => {
-      try {
-        const res = await dashboardAPI.getEnrollmentsByManager(managerId);
-        setEnrollments(res);
-      } catch (err) {
-        console.error("Failed to fetch enrollments:", err);
-      }
-    };
-    fetchEnrollments();
-  }, [managerId]);
-
-  // ✅ Filter & search
   const filtered = useMemo(() => {
     return enrollments.filter((e) => {
       const fullName = `${e.firstName} ${e.lastName}`.toLowerCase();
       const matchSearch = fullName.includes(search.toLowerCase()) || e.email.toLowerCase().includes(search.toLowerCase());
       const matchStatus =
-        statusFilter === "all" ||
-        (statusFilter === "Idle" ? e.isIdle : !e.isIdle);
+        statusFilter === "all" || e.enrollmentStatus === statusFilter;
       return matchSearch && matchStatus;
     });
   }, [enrollments, search, statusFilter]);
@@ -74,8 +58,9 @@ export default function DashboardEnrollTable({ managerId }) {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All</SelectItem>
-            <SelectItem value="Idle">Idle</SelectItem>
-            <SelectItem value="Active">Active</SelectItem>
+            <SelectItem value="OnGoing">OnGoing</SelectItem>
+            <SelectItem value="Paused">Paused</SelectItem>
+            <SelectItem value="Completed">Completed</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -87,7 +72,8 @@ export default function DashboardEnrollTable({ managerId }) {
             <TableHead>First Name</TableHead>
             <TableHead>Last Name</TableHead>
             <TableHead>Email</TableHead>
-            <TableHead>Status</TableHead>
+            <TableHead>Status User</TableHead>
+            <TableHead>Status Enroll</TableHead>
           </TableRow>
         </TableHeader>
 
@@ -103,7 +89,16 @@ export default function DashboardEnrollTable({ managerId }) {
                     user.isIdle ? "bg-green-100 text-green-700" : "bg-blue-100 text-blue-700"
                   }`}
                 >
-                  {user.isIdle ? "Idle" : "Active"}
+                  {user.isIdle ? "Idle" : "Not Idle"}
+                </span>
+              </TableCell>
+              <TableCell>
+                <span className={`px-2 py-1 rounded text-xs ${
+                  user.enrollmentStatus === "OnGoing" ? "bg-yellow-100 text-yellow-700" :
+                  user.enrollmentStatus === "Paused" ? "bg-orange-100 text-orange-700" :
+                  "bg-green-100 text-green-700"
+                }`}>
+                  {user.enrollmentStatus}
                 </span>
               </TableCell>
             </TableRow>

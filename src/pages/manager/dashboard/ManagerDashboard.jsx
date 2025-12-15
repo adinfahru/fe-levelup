@@ -8,51 +8,62 @@ export default function ManagerDashboard() {
   const managerId = "218C7F05-722C-4A74-B7B6-AC7BE3F1E0DC";
 
   const [employees, setEmployees] = useState([]);
+  const [enrollments, setEnrollments] = useState([]);
+  const [totalModules, setTotalModules] = useState(0);
   const [loading, setLoading] = useState(true);
 
   /* =========================
-      FETCH ALL EMPLOYEES
+      FETCH EMPLOYEES, ENROLLMENTS, MODULES
   ========================= */
   useEffect(() => {
-    const fetchEmployees = async () => {
+    const fetchData = async () => {
       setLoading(true);
       try {
-        const res = await dashboardAPI.getEmployees(managerId);
-
-        const mapped = res.data.map((e) => ({
+        // Employees
+        const resEmployees = await dashboardAPI.getEmployees(managerId);
+        const mappedEmployees = resEmployees.data.map((e) => ({
           ...e,
-          status: e.isIdle ? "Idle" : "Active", // UI ONLY
+          status: e.isIdle ? "Idle" : "Not Idle",
         }));
+        setEmployees(mappedEmployees);
 
-        setEmployees(mapped);
+        // Enrollments
+        const resEnrollments = await dashboardAPI.getEnrollmentsByManager(managerId);
+        setEnrollments(resEnrollments.data);
+
+        // Modules & stats (optional)
+        const resStats = await dashboardAPI.getManagerDashboard(managerId);
+        setTotalModules(resStats.data[0]?.totalModules || 0);
+
       } catch (err) {
-        console.error("Fetch employees failed:", err);
+        console.error("Failed to fetch dashboard data:", err);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchEmployees();
+    fetchData();
   }, [managerId]);
 
   /* =========================
-      TOGGLE STATUS (PATCH)
+      TOGGLE STATUS
   ========================= */
-  const handleToggleStatus = async (user) => {
-    const newIsIdle = !user.isIdle;
-
+  const handleToggleStatus = async (id, newIsIdle) => {
     try {
-      await dashboardAPI.updateEmployeeStatus(user.id, newIsIdle);
+      // PATCH ke backend
+      await dashboardAPI.updateEmployeeStatus(id, newIsIdle);
 
+      // Update employees
       setEmployees((prev) =>
         prev.map((e) =>
-          e.id === user.id
-            ? {
-                ...e,
-                isIdle: newIsIdle,
-                status: newIsIdle ? "Idle" : "Active",
-              }
-            : e
+          e.id === id ? { ...e, isIdle: newIsIdle, status: newIsIdle ? "Idle" : "Active" } : e
+        )
+      );
+
+      // Update enrollments
+      setEnrollments((prev) =>
+        prev.map((e) =>
+          e.employeeId === id ? { ...e, isIdle: newIsIdle } : e
         )
       );
     } catch (err) {
@@ -60,7 +71,11 @@ export default function ManagerDashboard() {
     }
   };
 
-  const activeEmployees = employees.filter((e) => !e.isIdle);
+  /* =========================
+      CALCULATE STATS
+  ========================= */
+  const totalIdle = employees.filter((e) => e.isIdle).length;
+  const totalEnroll = enrollments.length;
 
   return (
     <div className="p-4 space-y-6">
@@ -69,23 +84,26 @@ export default function ManagerDashboard() {
         <p className="text-gray-500">Overview & employee monitoring</p>
       </div>
 
-      {/* ==== STATS ==== */}
-      <DashboardStats managerId={managerId} />
+      {/* STATS */}
+      <DashboardStats
+        totalIdle={totalIdle}
+        totalEnroll={totalEnroll}
+        totalModules={totalModules}
+      />
 
       {loading ? (
         <p className="text-sm text-gray-500">Loading employees...</p>
       ) : (
         <>
-          {/* ==== ACTIVE / ENROLL ==== */}
-          <DashboardEnrollTable managerId={managerId} />
+          {/* ENROLLMENTS */}
+          <DashboardEnrollTable managerId={managerId} enrollments={enrollments} />
 
-          {/* ==== ALL EMPLOYEES ==== */}
+          {/* EMPLOYEES IDLE */}
           <DashboardIdleTable
             data={employees}
             managerId={managerId}
             onToggleStatus={handleToggleStatus}
           />
-
         </>
       )}
     </div>
