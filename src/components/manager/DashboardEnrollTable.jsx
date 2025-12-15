@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useMemo } from "react";
 import {
   Table,
   TableBody,
@@ -16,9 +16,8 @@ import {
   SelectItem,
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { dashboardAPI } from "@/api/dashboard.api";
 
-export default function DashboardEnrollTable({ managerId, enrollments }) {
+export default function DashboardEnrollTable({ enrollments = [] }) {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [page, setPage] = useState(1);
@@ -27,14 +26,15 @@ export default function DashboardEnrollTable({ managerId, enrollments }) {
   const filtered = useMemo(() => {
     return enrollments.filter((e) => {
       const fullName = `${e.firstName} ${e.lastName}`.toLowerCase();
-      const matchSearch = fullName.includes(search.toLowerCase()) || e.email.toLowerCase().includes(search.toLowerCase());
+      const matchSearch =
+        fullName.includes(search.toLowerCase()) ||
+        e.email?.toLowerCase().includes(search.toLowerCase());
       const matchStatus =
         statusFilter === "all" || e.enrollmentStatus === statusFilter;
       return matchSearch && matchStatus;
     });
   }, [enrollments, search, statusFilter]);
 
-  // ✅ Pagination
   const paginated = useMemo(() => {
     const start = (page - 1) * pageSize;
     return filtered.slice(start, start + pageSize);
@@ -65,7 +65,6 @@ export default function DashboardEnrollTable({ managerId, enrollments }) {
         </Select>
       </div>
 
-      {/* Table */}
       <Table>
         <TableHeader>
           <TableRow>
@@ -76,7 +75,6 @@ export default function DashboardEnrollTable({ managerId, enrollments }) {
             <TableHead>Status Enroll</TableHead>
           </TableRow>
         </TableHeader>
-
         <TableBody>
           {paginated.map((user) => (
             <TableRow key={user.employeeId}>
@@ -85,61 +83,32 @@ export default function DashboardEnrollTable({ managerId, enrollments }) {
               <TableCell>{user.email}</TableCell>
               <TableCell>
                 <span
-                  className={`px-2 py-1 rounded text-xs ${
-                    user.isIdle ? "bg-green-100 text-green-700" : "bg-blue-100 text-blue-700"
+                  className={`px-2 py-1 rounded text-xs font-medium ${
+                    user.isIdle
+                      ? "bg-green-100 text-green-700"
+                      : "bg-blue-100 text-blue-700"
                   }`}
                 >
                   {user.isIdle ? "Idle" : "Not Idle"}
                 </span>
               </TableCell>
               <TableCell>
-                <span className={`px-2 py-1 rounded text-xs ${
-                  user.enrollmentStatus === "OnGoing" ? "bg-yellow-100 text-yellow-700" :
-                  user.enrollmentStatus === "Paused" ? "bg-orange-100 text-orange-700" :
-                  "bg-green-100 text-green-700"
-                }`}>
+                <span
+                  className={`px-2 py-1 rounded text-xs font-medium ${
+                    user.enrollmentStatus === "OnGoing"
+                      ? "bg-yellow-100 text-yellow-700"
+                      : user.enrollmentStatus === "Paused"
+                      ? "bg-orange-100 text-orange-700"
+                      : "bg-green-100 text-green-700"
+                  }`}
+                >
                   {user.enrollmentStatus}
                 </span>
               </TableCell>
             </TableRow>
           ))}
-
-          {paginated.length === 0 && (
-            <TableRow>
-              <TableCell colSpan={4} className="text-center py-6">
-                No data found
-              </TableCell>
-            </TableRow>
-          )}
         </TableBody>
       </Table>
-
-      {/* Pagination */}
-      <div className="flex justify-between items-center pt-2">
-        <p className="text-sm">
-          Showing {paginated.length} of {filtered.length}
-        </p>
-        <div className="flex gap-2">
-          <Button
-            variant="outline"
-            onClick={() => setPage((p) => Math.max(1, p - 1))}
-            disabled={page === 1}
-          >
-            Prev
-          </Button>
-          <Button
-            variant="outline"
-            onClick={() =>
-              setPage((p) =>
-                filtered.length > p * pageSize ? p + 1 : p
-              )
-            }
-            disabled={filtered.length <= page * pageSize}
-          >
-            Next
-          </Button>
-        </div>
-      </div>
     </div>
   );
 }

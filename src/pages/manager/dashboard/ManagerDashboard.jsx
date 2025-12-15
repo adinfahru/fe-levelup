@@ -1,81 +1,56 @@
-import { useEffect, useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import DashboardIdleTable from "@/components/manager/DashboardIdleTable";
 import DashboardEnrollTable from "@/components/manager/DashboardEnrollTable";
 import DashboardStats from "@/components/manager/DashboardStats";
 import { dashboardAPI } from "@/api/dashboard.api";
 
 export default function ManagerDashboard() {
-  const managerId = "218C7F05-722C-4A74-B7B6-AC7BE3F1E0DC";
+  const queryClient = useQueryClient();
 
-  const [employees, setEmployees] = useState([]);
-  const [enrollments, setEnrollments] = useState([]);
-  const [totalModules, setTotalModules] = useState(0);
-  const [loading, setLoading] = useState(true);
+  // EMPLOYEES
+  const {
+    data: employees = [],
+    isLoading: loadingEmployees,
+    isError: employeeError,
+  } = useQuery({
+    queryKey: ["employees"],
+    queryFn: dashboardAPI.getEmployees,
+  });
 
-  /* =========================
-      FETCH EMPLOYEES, ENROLLMENTS, MODULES
-  ========================= */
-  useEffect(() => {
-    const fetchData = async () => {
-      setLoading(true);
-      try {
-        // Employees
-        const resEmployees = await dashboardAPI.getEmployees(managerId);
-        const mappedEmployees = resEmployees.data.map((e) => ({
-          ...e,
-          status: e.isIdle ? "Idle" : "Not Idle",
-        }));
-        setEmployees(mappedEmployees);
+  // ENROLLMENTS
+  const {
+    data: enrollments = [],
+    isLoading: loadingEnrollments,
+    isError: enrollError,
+  } = useQuery({
+    queryKey: ["enrollments"],
+    queryFn: dashboardAPI.getEnrollmentsByManager,
+  });
 
-        // Enrollments
-        const resEnrollments = await dashboardAPI.getEnrollmentsByManager(managerId);
-        setEnrollments(resEnrollments.data);
+  // DASHBOARD STATS
+  const {
+    data: statsData,
+    isLoading: loadingStats,
+    isError: statsError,
+  } = useQuery({
+    queryKey: ["dashboardStats"],
+    queryFn: dashboardAPI.getManagerDashboard,
+  });
 
-        // Modules & stats (optional)
-        const resStats = await dashboardAPI.getManagerDashboard(managerId);
-        setTotalModules(resStats.data[0]?.totalModules || 0);
+if (employeeError) {
+  console.error("Employees error");
+}
 
-      } catch (err) {
-        console.error("Failed to fetch dashboard data:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
+if (enrollError) {
+  console.error("Enrollments error");
+}
 
-    fetchData();
-  }, [managerId]);
+if (statsError) {
+  console.error("Stats error");
+}
 
-  /* =========================
-      TOGGLE STATUS
-  ========================= */
-  const handleToggleStatus = async (id, newIsIdle) => {
-    try {
-      // PATCH ke backend
-      await dashboardAPI.updateEmployeeStatus(id, newIsIdle);
 
-      // Update employees
-      setEmployees((prev) =>
-        prev.map((e) =>
-          e.id === id ? { ...e, isIdle: newIsIdle, status: newIsIdle ? "Idle" : "Active" } : e
-        )
-      );
-
-      // Update enrollments
-      setEnrollments((prev) =>
-        prev.map((e) =>
-          e.employeeId === id ? { ...e, isIdle: newIsIdle } : e
-        )
-      );
-    } catch (err) {
-      console.error("Update status failed:", err);
-    }
-  };
-
-  /* =========================
-      CALCULATE STATS
-  ========================= */
-  const totalIdle = employees.filter((e) => e.isIdle).length;
-  const totalEnroll = enrollments.length;
+  const loading = loadingEmployees || loadingEnrollments || loadingStats;
 
   return (
     <div className="p-4 space-y-6">
@@ -84,25 +59,31 @@ export default function ManagerDashboard() {
         <p className="text-gray-500">Overview & employee monitoring</p>
       </div>
 
-      {/* STATS */}
-      <DashboardStats
-        totalIdle={totalIdle}
-        totalEnroll={totalEnroll}
-        totalModules={totalModules}
-      />
+      {statsData && (
+  <DashboardStats
+    totalIdle={statsData.totalIdle ?? 0}
+    totalEnroll={statsData.totalEnroll ?? 0}
+    totalModules={statsData.totalModules ?? 0}
+  />
+)}
+
 
       {loading ? (
-        <p className="text-sm text-gray-500">Loading employees...</p>
+        <p className="text-sm text-gray-500">Loading dashboard...</p>
       ) : (
         <>
-          {/* ENROLLMENTS */}
-          <DashboardEnrollTable managerId={managerId} enrollments={enrollments} />
-
-          {/* EMPLOYEES IDLE */}
+          <DashboardEnrollTable enrollments={enrollments} />
           <DashboardIdleTable
-            data={employees}
-            managerId={managerId}
-            onToggleStatus={handleToggleStatus}
+            data={employees.map((e) => ({
+              ...e,
+              status: e.isIdle ? "Idle" : "Not Idle",
+            }))}
+            onToggleStatus={async (id, isIdle) => {
+              await dashboardAPI.updateEmployeeStatus(id, isIdle);
+              queryClient.invalidateQueries({ queryKey: ["employees"] });
+              queryClient.invalidateQueries({ queryKey: ["enrollments"] });
+              queryClient.invalidateQueries({ queryKey: ["dashboardStats"] });
+            }}
           />
         </>
       )}
