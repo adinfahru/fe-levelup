@@ -11,7 +11,7 @@ export default function SubmissionDetailPage() {
     name: "Addinda Ayu A",
     status: "Pending",
     module: ".NET Learning Path 1",
-    progress: "1/4",
+    progress: "4/4",
     description:
       "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
   };
@@ -24,16 +24,17 @@ export default function SubmissionDetailPage() {
   },
   {
     title: "C# Fundamentals",
-    description: "",
-    // url: "https://example.com/csharp",
+    description: "Membuat CRUD employee dan validasi email. Kendala pada regex email.",
+    url: "https://example.com/csharp",
   },
   {
     title: "ASP.NET Core",
-    description: "",
+    description: "adjhfhgfjgshdgfhgdhfghgfhegg dvfhgegfyieg kdhcuygdvce chevcguvecjne cgedvcvevched cevch edcvdhc bvcudhsc",
   },
   {
     title: "Mini Project",
-    description: "",
+    description: "completed miniproject akhirnya",
+    url: "https://example.com/minpro",
   },
 ];
 
@@ -51,7 +52,7 @@ export default function SubmissionDetailPage() {
           console.log("REJECT CLICKED"); // 🔍 DEBUG
           setOpenReject(true);           // 🔥 INI YANG BUKA MODAL
         }}
-      />  {/* selain statusnya "Completed" ini ga nyala / disable */}
+      />  {/* yang statusnya "Approved" ini ga nyala / disable */}
 
         <SubmissionSections
             sections={sections}
