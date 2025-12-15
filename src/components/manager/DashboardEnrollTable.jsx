@@ -1,4 +1,5 @@
-import { useState, useMemo } from "react";
+import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import {
   Table,
   TableBody,
@@ -15,7 +16,6 @@ import {
   SelectContent,
   SelectItem,
 } from "@/components/ui/select";
-import { Button } from "@/components/ui/button";
 
 export default function DashboardEnrollTable({ enrollments = [] }) {
   const [search, setSearch] = useState("");
@@ -23,22 +23,25 @@ export default function DashboardEnrollTable({ enrollments = [] }) {
   const [page, setPage] = useState(1);
   const pageSize = 5;
 
-  const filtered = useMemo(() => {
-    return enrollments.filter((e) => {
-      const fullName = `${e.firstName} ${e.lastName}`.toLowerCase();
-      const matchSearch =
-        fullName.includes(search.toLowerCase()) ||
-        e.email?.toLowerCase().includes(search.toLowerCase());
-      const matchStatus =
-        statusFilter === "all" || e.enrollmentStatus === statusFilter;
-      return matchSearch && matchStatus;
-    });
-  }, [enrollments, search, statusFilter]);
+  const { data: paginated = [] } = useQuery({
+    queryKey: ["enrollments-view", enrollments, search, statusFilter, page],
+    queryFn: () => enrollments, // data sudah ada
+    select: (data) => {
+      const filtered = data.filter((e) => {
+        const fullName = `${e.firstName} ${e.lastName}`.toLowerCase();
+        const matchSearch =
+          fullName.includes(search.toLowerCase()) ||
+          e.email?.toLowerCase().includes(search.toLowerCase());
+        const matchStatus =
+          statusFilter === "all" || e.enrollmentStatus === statusFilter;
+        return matchSearch && matchStatus;
+      });
 
-  const paginated = useMemo(() => {
-    const start = (page - 1) * pageSize;
-    return filtered.slice(start, start + pageSize);
-  }, [filtered, page]);
+      const start = (page - 1) * pageSize;
+      return filtered.slice(start, start + pageSize);
+    },
+    keepPreviousData: true,
+  });
 
   return (
     <div className="space-y-4 p-4 border rounded-xl bg-white shadow-sm">
@@ -49,10 +52,19 @@ export default function DashboardEnrollTable({ enrollments = [] }) {
         <Input
           placeholder="Search user..."
           value={search}
-          onChange={(e) => setSearch(e.target.value)}
+          onChange={(e) => {
+            setSearch(e.target.value);
+            setPage(1);
+          }}
           className="max-w-xs"
         />
-        <Select value={statusFilter} onValueChange={setStatusFilter}>
+        <Select
+          value={statusFilter}
+          onValueChange={(val) => {
+            setStatusFilter(val);
+            setPage(1);
+          }}
+        >
           <SelectTrigger className="w-40">
             <SelectValue placeholder="Status" />
           </SelectTrigger>
