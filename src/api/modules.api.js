@@ -3,7 +3,9 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://localhost:711
 const handleResponse = async (response) => {
   if (!response.ok) {
     const error = await response.json().catch(() => ({}));
-    throw new Error(error.message || 'An error occurred');
+    const errorMsg = error.message || error.statusCode || 'An error occurred';
+    console.error('API Error Response:', error);
+    throw new Error(errorMsg);
   }
   const result = await response.json();
   // Backend returns { status, message, data }
@@ -49,20 +51,55 @@ export const modulesAPI = {
   },
 
   update: async (id, moduleData) => {
-    const res = await fetch(`${API_BASE_URL}/modules/${id}`, {
+    const response = await fetch(`${API_BASE_URL}/modules/${id}`, {
       method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
+      headers: getHeaders(),
       body: JSON.stringify(moduleData),
     });
-    if (!res.ok) throw new Error('Failed to update module');
-    return res.json();
+    return handleResponse(response);
   },
 
   delete: async (id) => {
-    const res = await fetch(`${API_BASE_URL}/modules/${id}`, {
+    const response = await fetch(`${API_BASE_URL}/modules/${id}`, {
       method: 'DELETE',
+      headers: getHeaders(),
     });
-    if (!res.ok) throw new Error('Failed to delete module');
-    return res.json();
+    return handleResponse(response);
+  },
+
+  // Module Items endpoints
+  addItem: async (moduleId, itemData) => {
+    const response = await fetch(`${API_BASE_URL}/modules/${moduleId}/items`, {
+      method: 'POST',
+      headers: getHeaders(),
+      body: JSON.stringify(itemData),
+    });
+    return handleResponse(response);
+  },
+
+  updateItem: async (moduleId, itemId, itemData) => {
+    const response = await fetch(`${API_BASE_URL}/modules/${moduleId}/items/${itemId}`, {
+      method: 'PUT',
+      headers: getHeaders(),
+      body: JSON.stringify(itemData),
+    });
+    return handleResponse(response);
+  },
+
+  deleteItem: async (moduleId, itemId) => {
+    const response = await fetch(`${API_BASE_URL}/modules/${moduleId}/items/${itemId}`, {
+      method: 'DELETE',
+      headers: getHeaders(),
+    });
+    return handleResponse(response);
+  },
+
+  reorderItems: async (moduleId, itemOrders) => {
+    const response = await fetch(`${API_BASE_URL}/modules/${moduleId}/items/reorder`, {
+      method: 'PUT',
+      headers: getHeaders(),
+      body: JSON.stringify({ itemOrders }),
+    });
+    return handleResponse(response);
   },
 };
