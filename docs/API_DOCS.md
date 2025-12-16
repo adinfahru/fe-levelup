@@ -95,16 +95,23 @@ https://localhost:7118/api/v1/enrollments
 | PATCH | `/api/v1/modules/{id}/status` | Update module status | Yes | Manager |
 
 ### Enrollment Management
+**📖 Detailed Documentation:** [ENROLLMENT_API.md](./ENROLLMENT_API.md)
+
 | Method | Endpoint | Description | Auth Required | Role |
 |--------|----------|-------------|---------------|------|
-| GET | `/api/v1/enrollments` | Get all enrollments | Yes | Employee |
-| POST | `/api/v1/enrollments` | Create enrollment | Yes | Employee |
-| GET | `/api/v1/enrollments/current` | Get current enrollment | Yes | Employee |
+| GET | `/api/v1/enrollments/current` | Get current active enrollment | Yes | Employee |
 | GET | `/api/v1/enrollments/history` | Get enrollment history | Yes | Employee |
-| POST | `/api/v1/enrollments/{id}/resume` | Resume enrollment | Yes | Employee |
+| POST | `/api/v1/enrollments` | Create new enrollment | Yes | Employee |
+| POST | `/api/v1/enrollments/{id}/items` | Submit checklist item | Yes | Employee |
 | GET | `/api/v1/enrollments/{id}/progress` | Get enrollment progress | Yes | Employee |
-| POST | `/api/v1/enrollments/{id}/items` | Mark item as completed | Yes | Employee |
-| POST | `/api/v1/enrollments/{id}/submit` | Submit final work | Yes | Employee |
+| POST | `/api/v1/enrollments/{id}/resume` | Resume paused enrollment | Yes | Employee |
+
+**Key Features:**
+- Single active enrollment policy (one module at a time)
+- Automatic progress tracking and calculation
+- Auto-pause when enrolling in new module
+- Auto-complete when all items submitted
+- Comprehensive history tracking
 
 ### Submission Management
 | Method | Endpoint | Description | Auth Required | Role |
@@ -648,7 +655,9 @@ Retrieve all training modules with optional filters.
         "isActive": true,
         "createdBy": "550e8400-e29b-41d4-a716-446655440000",
         "createdAt": "2025-12-01T08:00:00Z",
-        "itemCount": 5
+        "itemCount": 5,
+        "enrolledCount": 12,
+        "activeCount": 3
       }
     ],
     "pagination": {
