@@ -27,12 +27,15 @@ export function AuthProvider({ children }) {
       const response = await authAPI.login(credentials);
 
       // API returns: { status: 200, message: "...", data: { token, email, role, expiresAt } }
-      const { token, email, role } = response.data;
+      const { token, email, role, id, firstName, lastName } = response.data;
 
       // Build user object
       const userData = {
+        id,
         email,
         role,
+        firstName,
+        lastName,
       };
 
       // Store token and user data
