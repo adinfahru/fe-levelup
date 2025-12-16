@@ -1,22 +1,19 @@
-import { useState } from 'react'
-import { getRouteApi } from '@tanstack/react-router'
-import { Input } from '@/components/ui/input'
-import { Button } from '@/components/ui/button'
-import { Search } from 'lucide-react'
-import { ModuleCard } from '@/components/employee/ModuleCard'
+import { useState } from 'react';
+import { getRouteApi } from '@tanstack/react-router';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Search } from 'lucide-react';
+import { HistoryModuleCard } from '@/components/employee/HistoryModuleCard';
 
-const Route = getRouteApi('/_employee/employee/history')
+const Route = getRouteApi('/_employee/employee/history');
 
 export default function EnrollmentHistory() {
-  const [search, setSearch] = useState('')
-  const data = Route.useLoaderData()
+  const [search, setSearch] = useState('');
+  const enrollments = Route.useLoaderData() ?? [];
 
-  // 🔥 SAMA PERSIS kayak dashboard
-  const modules = data?.items || []
-
-  const filtered = modules.filter((m) =>
-    m.title?.toLowerCase().includes(search.toLowerCase())
-  )
+  const filtered = enrollments.filter((e) =>
+    e.moduleTitle.toLowerCase().includes(search.toLowerCase())
+  );
 
   return (
     <div className="w-full p-6 space-y-6">
@@ -32,15 +29,23 @@ export default function EnrollmentHistory() {
             onChange={(e) => setSearch(e.target.value)}
           />
         </div>
-
         <Button variant="outline">Filter</Button>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-        {filtered.map((item) => (
-          <ModuleCard key={item.id} data={item} />
-        ))}
-      </div>
+      {filtered.length === 0 ? (
+        <p className="text-sm text-gray-500 italic">
+          No enrollment history yet.
+        </p>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+          {filtered.map((item) => (
+            <HistoryModuleCard
+              key={item.enrollmentId}
+              data={item}   // ⬅️ RAW JSON
+            />
+          ))}
+        </div>
+      )}
     </div>
-  )
+  );
 }
