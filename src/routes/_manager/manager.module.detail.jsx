@@ -4,12 +4,22 @@ import { modulesAPI } from '@/api/modules.api';
 
 export const Route = createFileRoute('/_manager/manager/module/detail')({
   component: ModuleDetail,
-  loader: async ({ context, search }) => {
-    const id = search?.id;
+  validateSearch: (search) => {
+    return {
+      id: search.id || '',
+    };
+  },
+  loaderDeps: ({ search }) => ({ id: search.id }),
+  loader: async ({ deps }) => {
+    const id = deps.id;
     if (!id) return null;
-    return context.queryClient.ensureQueryData({
-      queryKey: ['modules', id],
-      queryFn: () => modulesAPI.getById(id),
-    });
+
+    try {
+      const data = await modulesAPI.getById(id);
+      return data;
+    } catch (error) {
+      console.error('Failed to load module:', error);
+      return null;
+    }
   },
 });

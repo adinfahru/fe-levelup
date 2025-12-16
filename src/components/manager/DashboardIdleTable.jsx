@@ -1,4 +1,5 @@
-import { useState, useMemo } from "react";
+import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import {
   Table,
   TableBody,
@@ -18,67 +19,71 @@ import {
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import DashboardDetailModal from "@/components/manager/DashboardDetailModal";
+import { Eye } from "lucide-react";
+import { dashboardAPI } from "@/api/dashboard.api";
 
-
-import { Eye, RefreshCw } from "lucide-react";
-
-export default function DashboardIdleTable({ data, onView, onToggleStatus }) {
+export default function DashboardIdleTable({ data = [], onToggleStatus }) {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [page, setPage] = useState(1);
-
   const [selectedUser, setSelectedUser] = useState(null);
   const [openDetail, setOpenDetail] = useState(false);
 
-  const pageSize = 3;
+  const pageSize = 5;
 
-  // Filter
-  const filtered = useMemo(() => {
-    return data.filter((item) => {
-      const matchSearch =
-        `${item.firstName} ${item.lastName}`
-          .toLowerCase()
-          .includes(search.toLowerCase()) ||
-        item.email.toLowerCase().includes(search.toLowerCase());
+  const { data: paginated = [], dataUpdatedAt } = useQuery({
+    queryKey: ["idle-users-view", data, search, statusFilter, page],
+    queryFn: () => data,
+    select: (rows) => {
+      const filtered = rows.filter((item) => {
+        const fullName = `${item.firstName} ${item.lastName}`.toLowerCase();
+        const matchSearch =
+          fullName.includes(search.toLowerCase()) ||
+          item.email?.toLowerCase().includes(search.toLowerCase());
+        const matchStatus =
+          statusFilter === "all" || item.status === statusFilter;
+        return matchSearch && matchStatus;
+      });
 
-      const matchStatus =
-        statusFilter === "all" || item.status === statusFilter;
-
-      return matchSearch && matchStatus;
-    });
-  }, [search, statusFilter, data]);
-
-  const paginated = useMemo(() => {
-    const start = (page - 1) * pageSize;
-    return filtered.slice(start, start + pageSize);
-  }, [page, filtered]);
+      const start = (page - 1) * pageSize;
+      return filtered.slice(start, start + pageSize);
+    },
+    keepPreviousData: true,
+  });
 
   return (
     <div className="space-y-4 p-4 border rounded-xl bg-white shadow-sm">
       <h2 className="text-xl font-semibold">List User Idle</h2>
 
       {/* Search + Filter */}
-      <div className="flex gap-3">
+      <div className="flex gap-3 mb-2">
         <Input
           placeholder="Search user..."
           value={search}
-          onChange={(e) => setSearch(e.target.value)}
+          onChange={(e) => {
+            setSearch(e.target.value);
+            setPage(1);
+          }}
           className="max-w-xs"
         />
-
-        <Select value={statusFilter} onValueChange={setStatusFilter}>
+        <Select
+          value={statusFilter}
+          onValueChange={(val) => {
+            setStatusFilter(val);
+            setPage(1);
+          }}
+        >
           <SelectTrigger className="w-40">
             <SelectValue placeholder="Status" />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All</SelectItem>
             <SelectItem value="Idle">Idle</SelectItem>
-            <SelectItem value="Active">Active</SelectItem>
+            <SelectItem value="Not Idle">Not Idle</SelectItem>
           </SelectContent>
         </Select>
       </div>
 
-      {/* Table */}
       <Table>
         <TableHeader>
           <TableRow>
@@ -91,12 +96,11 @@ export default function DashboardIdleTable({ data, onView, onToggleStatus }) {
         </TableHeader>
 
         <TableBody>
-          {paginated.map((user, i) => (
-            <TableRow key={i}>
+          {paginated.map((user) => (
+            <TableRow key={user.id}>
               <TableCell>{user.firstName}</TableCell>
               <TableCell>{user.lastName}</TableCell>
               <TableCell>{user.email}</TableCell>
-
               <TableCell>
                 <span
                   className={`px-2 py-1 rounded text-xs ${
@@ -109,42 +113,32 @@ export default function DashboardIdleTable({ data, onView, onToggleStatus }) {
                 </span>
               </TableCell>
 
-              {/* ACTION BUTTONS */}
+              {/* ACTIONS */}
               <TableCell className="text-right">
-                <div className="flex items-center justify-end gap-3">
-
-                  {/* View Button */}
+                <div className="flex justify-end gap-3 items-center">
                   <Button
-                    variant="outline"
                     size="sm"
-                    onClick={() => {
+                    variant="outline"
+                    onClick={async (e) => {
+                      e.stopPropagation(); 
+                      const detail =
+                        await dashboardAPI.getEmployeeDetail(user.id);
                       setSelectedUser({
-                        id: user.id,
-                        firstName: user.firstName,
-                        lastName: user.lastName,
-                        email: user.email,
-                        status: user.status,
-                        role: user.role ?? "Unknown",
-                        positionName: user.positionName ?? "-",
+                        ...detail,
+                        status: detail.isIdle ? "Idle" : "Not Idle",
                       });
-                    setOpenDetail(true);
-                  }}
+                      setOpenDetail(true);
+                    }}
                   >
                     <Eye className="w-4 h-4" />
                   </Button>
 
-                  {/* Toggle Switch */}
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs text-gray-500">
-                      {user.status === "Active" ? "Active" : "Idle"}
-                    </span>
-
-                    <Switch
-                      checked={user.status === "Idle"}
-                      onCheckedChange={() => onToggleStatus?.(user)}
-                    />
-                  </div>
-
+                  <Switch
+                    checked={user.isIdle}
+                    onCheckedChange={(checked) =>
+                      onToggleStatus(user.id, checked)
+                    }
+                  />
                 </div>
               </TableCell>
             </TableRow>
@@ -153,42 +147,35 @@ export default function DashboardIdleTable({ data, onView, onToggleStatus }) {
           {paginated.length === 0 && (
             <TableRow>
               <TableCell colSpan={5} className="text-center py-6">
-                No results found.
+                No data found
               </TableCell>
             </TableRow>
           )}
         </TableBody>
       </Table>
 
-      {/* Pagination */}
-      <div className="flex justify-between items-center pt-2">
-        <p className="text-sm">
-          Showing {paginated.length} of {filtered.length}
-        </p>
-
+      {/* PAGINATION */}
+      <div className="flex justify-between">
+        <p className="text-sm">Showing {paginated.length}</p>
         <div className="flex gap-2">
           <Button
             variant="outline"
-            onClick={() => setPage((p) => Math.max(1, p - 1))}
             disabled={page === 1}
+            onClick={() => setPage((p) => Math.max(1, p - 1))}
           >
             Prev
           </Button>
-
           <Button
             variant="outline"
-            onClick={() =>
-              setPage((p) =>
-                filtered.length > p * pageSize ? p + 1 : p
-              )
-            }
-            disabled={filtered.length <= page * pageSize}
+            disabled={paginated.length < pageSize}
+            onClick={() => setPage((p) => p + 1)}
           >
             Next
           </Button>
         </div>
       </div>
-      {/* Modal Detail */}
+
+      {/* MODAL */}
       <DashboardDetailModal
         open={openDetail}
         onClose={() => setOpenDetail(false)}

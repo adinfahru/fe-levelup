@@ -15,6 +15,7 @@ export default function ModuleList() {
   // Extract items array from API response
   const modules = data?.items || [];
 
+  // Apply search filter only
   const filtered = modules.filter((m) => m.title?.toLowerCase().includes(search.toLowerCase()));
 
   return (
@@ -34,19 +35,15 @@ export default function ModuleList() {
 
       {/* Search */}
       <div className="flex items-center gap-3 w-full max-w-md">
-        <div className="relative w-full">
+        <div className="relative flex-1">
           <Search className="absolute left-2 top-2.5 w-4 h-4 text-gray-500" />
           <Input
-            placeholder="Search"
+            placeholder="Search modules..."
             className="pl-8 border-indigo-800/40 focus-visible:ring-indigo-800"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
         </div>
-
-        <Button variant="outline" className="border-indigo-800 text-indigo-800">
-          Filter
-        </Button>
       </div>
 
       {/* Modules Grid */}
