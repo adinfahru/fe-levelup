@@ -1,25 +1,26 @@
 import { Button } from '@/components/ui/button';
 
-export function EmployeeModuleDetail({ data, onEnroll }) {
+export function EmployeeModuleDetail({
+  data,
+  onEnroll,
+  enrollDisabled = false,
+  enrollLabel = 'Enroll',
+}) {
   return (
     <div className="bg-white rounded-xl border shadow-sm p-6 space-y-4">
       {/* Header */}
       <div className="flex justify-between items-start gap-6">
         <div>
-          <h1 className="text-2xl font-semibold">
-            {data.title}
-          </h1>
-          <p className="text-sm text-gray-500">
-            Created by {data.createdBy}
-          </p>
+          <h1 className="text-2xl font-semibold">{data.title}</h1>
+          <p className="text-sm text-gray-500">Created by {data.createdBy}</p>
         </div>
 
         <Button
           className="bg-red-500 hover:bg-red-600 text-white px-6"
           onClick={onEnroll}
-          disabled={data.isActive === false}
+          disabled={enrollDisabled || data.isActive === false}
         >
-          Enroll
+          {enrollLabel}
         </Button>
       </div>
 
@@ -40,9 +41,7 @@ export function EmployeeModuleDetail({ data, onEnroll }) {
       </div>
 
       {/* Description */}
-      <p className="text-gray-700">
-        {data.description || '-'}
-      </p>
+      <p className="text-gray-700">{data.description || '-'}</p>
     </div>
   );
 }
