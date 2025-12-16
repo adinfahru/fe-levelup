@@ -21,7 +21,7 @@ export function SubmissionCard({ data, onView }) {
             {data.name}
           </h3>
           <p className="text-sm text-muted-foreground">
-            {data.email}
+            {data.modul}
           </p>
         </div>
 

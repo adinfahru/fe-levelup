@@ -13,25 +13,25 @@ const submissions = [
   {
     id: 1,
     name: "Addinda Ayu A",
-    email: "addinda@gmail.com",
+    modul: ".NET Learning Path 1",
     status: "Pending",
   },
   {
     id: 2,
     name: "Imam Zuhdi Muzaky",
-    email: "imam@gmail.com",
+    modul: ".NET Learning Path 2",
     status: "Rejected",
   },
   {
     id: 3,
     name: "Muhamad Fahrudin",
-    email: "fahru@gmail.com",
+    modul: ".NET Learning Path 2",
     status: "Approved",
   },
   {
     id: 4,
     name: "Nabiilah Putri Afiifah",
-    email: "nabila@gmail.com",
+    modul: ".NET Learning Path 1",
     status: "Approved",
   },
 ];
@@ -44,7 +44,7 @@ export default function SubmissionList() {
     return submissions.filter((item) => {
       const matchSearch =
         item.name.toLowerCase().includes(search.toLowerCase()) ||
-        item.email.toLowerCase().includes(search.toLowerCase());
+        item.modul.toLowerCase().includes(search.toLowerCase());
 
       const matchStatus =
         statusFilter === "all" || item.status === statusFilter;
