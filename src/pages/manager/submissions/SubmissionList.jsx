@@ -1,4 +1,5 @@
-import { useState, useMemo } from "react";
+import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { SubmissionCard } from "@/components/manager/SubmissionCard";
 import { Input } from "@/components/ui/input";
 import {
@@ -8,60 +9,41 @@ import {
   SelectContent,
   SelectItem,
 } from "@/components/ui/select";
-
-const submissions = [
-  {
-    id: 1,
-    name: "Addinda Ayu A",
-    modul: ".NET Learning Path 1",
-    status: "Pending",
-  },
-  {
-    id: 2,
-    name: "Imam Zuhdi Muzaky",
-    modul: ".NET Learning Path 2",
-    status: "Rejected",
-  },
-  {
-    id: 3,
-    name: "Muhamad Fahrudin",
-    modul: ".NET Learning Path 2",
-    status: "Approved",
-  },
-  {
-    id: 4,
-    name: "Nabiilah Putri Afiifah",
-    modul: ".NET Learning Path 1",
-    status: "Approved",
-  },
-];
+import { submissionAPI } from "@/api/submission.api";
 
 export default function SubmissionList() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
 
-  const filtered = useMemo(() => {
-    return submissions.filter((item) => {
-      const matchSearch =
-        item.name.toLowerCase().includes(search.toLowerCase()) ||
-        item.modul.toLowerCase().includes(search.toLowerCase());
+  const { data = [], isLoading, isError } = useQuery({
+    queryKey: ["submissions"],
+    queryFn: submissionAPI.getSubmissions,
+  });
 
-      const matchStatus =
-        statusFilter === "all" || item.status === statusFilter;
+  if (isLoading) {
+    return <p className="text-sm text-muted-foreground">Loading submissions...</p>;
+  }
 
-      return matchSearch && matchStatus;
-    });
-  }, [search, statusFilter]);
+  if (isError) {
+    return <p className="text-sm text-red-500">Failed to load submissions</p>;
+  }
+
+  const filtered = data.filter((item) => {
+    const matchSearch =
+      item.employeeName.toLowerCase().includes(search.toLowerCase()) ||
+      item.moduleTitle.toLowerCase().includes(search.toLowerCase());
+
+    const matchStatus =
+      statusFilter === "all" || item.status === statusFilter;
+
+    return matchSearch && matchStatus;
+  });
 
   return (
     <div className="space-y-6">
-      {/* HEADER */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <h1 className="text-2xl font-semibold">
-          Manager Submission & Review
-        </h1>
+        <h1 className="text-2xl font-semibold">Manager Submission & Review</h1>
 
-        {/* SEARCH + FILTER */}
         <div className="flex gap-3">
           <Input
             placeholder="Search employee..."
@@ -84,14 +66,9 @@ export default function SubmissionList() {
         </div>
       </div>
 
-      {/* CARD GRID */}
       <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
         {filtered.map((item) => (
-          <SubmissionCard
-            key={item.id}
-            data={item}
-            onView={(data) => console.log("View:", data)}
-          />
+          <SubmissionCard key={item.submissionId} data={item} />
         ))}
 
         {filtered.length === 0 && (

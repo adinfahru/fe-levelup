@@ -15,18 +15,17 @@ export default function SubmissionModalReject({
   onClose,
   onSubmit,
 }) {
-  const [description, setDescription] = useState("");
-  const [targetDays, setTargetDays] = useState("");
+  const [managerFeedback, setManagerFeedback] = useState("");
+  const [estimatedDays, setEstimatedDays] = useState("");
 
   const handleSubmit = () => {
     onSubmit?.({
-      description,
-      targetDays: Number(targetDays),
+      managerFeedback,
+      estimatedDays: Number(estimatedDays),
     });
 
-    // reset
-    setDescription("");
-    setTargetDays("");
+    setManagerFeedback("");
+    setEstimatedDays("");
     onClose();
   };
 
@@ -38,29 +37,27 @@ export default function SubmissionModalReject({
         </DialogHeader>
 
         <div className="space-y-4">
-          {/* DESCRIPTION */}
-          <div className="space-y-1">
+          <div>
             <label className="text-sm font-medium">
               Catatan / Kendala yang harus diperbaiki
             </label>
             <Textarea
               placeholder="Jelaskan bagian yang perlu direvisi..."
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
+              value={managerFeedback}
+              onChange={(e) => setManagerFeedback(e.target.value)}
             />
           </div>
 
-          {/* TARGET DAYS */}
-          <div className="space-y-1">
+          <div>
             <label className="text-sm font-medium">
-              Target Penyelesaian (hari)
+              Estimasi Hari Revisi
             </label>
             <Input
               type="number"
               min={1}
               placeholder="Contoh: 3"
-              value={targetDays}
-              onChange={(e) => setTargetDays(e.target.value)}
+              value={estimatedDays}
+              onChange={(e) => setEstimatedDays(e.target.value)}
             />
           </div>
         </div>
@@ -72,7 +69,7 @@ export default function SubmissionModalReject({
           <Button
             className="bg-rose-500 hover:bg-rose-600 text-white"
             onClick={handleSubmit}
-            disabled={!description || !targetDays}
+            disabled={!managerFeedback || !estimatedDays}
           >
             Submit Revision
           </Button>

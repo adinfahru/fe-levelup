@@ -1,77 +1,100 @@
 import { useState } from "react";
+import {
+  useQuery,
+  useMutation,
+  useQueryClient,
+} from "@tanstack/react-query";
+import { useParams } from "@tanstack/react-router";
+
 import SubmissionDetailCard from "@/components/manager/SubmissionDetailCard";
 import SubmissionModalReject from "@/components/manager/SubmissionModalReject";
 import { SubmissionSections } from "@/components/manager/SubmissionSections";
-import { Breadcrumbs } from '@/components/ui/sidebar/Breadcrumbs';
+import { Breadcrumbs } from "@/components/ui/sidebar/Breadcrumbs";
+import { submissionAPI } from "@/api/submission.api";
 
 export default function SubmissionDetailPage() {
-    const [openReject, setOpenReject] = useState(false);
+  const { submissionId } = useParams({
+    from: "/_manager/manager/submission/$submissionId",
+  });
 
-  const data = {
-    name: "Addinda Ayu A",
-    status: "Pending",
-    module: ".NET Learning Path 1",
-    progress: "4/4",
-    description:
-      "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+  const queryClient = useQueryClient();
+  const [openReject, setOpenReject] = useState(false);
+
+  // ===============================
+  // FETCH DETAIL
+  // ===============================
+  const { data, isLoading, isError } = useQuery({
+    queryKey: ["submission-detail", submissionId],
+    queryFn: () => submissionAPI.getSubmissionDetail(submissionId),
+    enabled: !!submissionId,
+  });
+
+  // ===============================
+  // REVIEW MUTATION (APPROVE / REJECT)
+  // ===============================
+  const reviewMutation = useMutation({
+    mutationFn: (payload) =>
+      submissionAPI.reviewSubmission(submissionId, payload),
+    onSuccess: () => {
+      setOpenReject(false);
+
+      // 🔥 refresh detail & list
+      queryClient.invalidateQueries({
+        queryKey: ["submission-detail", submissionId],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["submissions"],
+      });
+    },
+  });
+
+  if (isLoading) return <p>Loading detail...</p>;
+  if (isError || !data) return <p>Failed to load submission</p>;
+
+  // ===============================
+  // HANDLERS
+  // ===============================
+  const handleApprove = () => {
+    reviewMutation.mutate({
+      status: "Approved",
+      managerFeedback: null,
+      estimatedDays: null,
+    });
   };
 
-  const sections = [
-  {
-    title: "Introduction to .NET",
-    description: "Sudah melakukan setup project .NET dan database. Kendala sempat terjadi saat migration, namun berhasil diatasi dengan update connection string.",
-    url: "https://example.com/intro",
-  },
-  {
-    title: "C# Fundamentals",
-    description: "Membuat CRUD employee dan validasi email. Kendala pada regex email.",
-    url: "https://example.com/csharp",
-  },
-  {
-    title: "ASP.NET Core",
-    description: "adjhfhgfjgshdgfhgdhfghgfhegg dvfhgegfyieg kdhcuygdvce chevcguvecjne cgedvcvevched cevch edcvdhc bvcudhsc",
-  },
-  {
-    title: "Mini Project",
-    description: "completed miniproject akhirnya",
-    url: "https://example.com/minpro",
-  },
-];
-
+  const handleReject = (payload) => {
+    reviewMutation.mutate({
+      status: "Rejected",
+      managerFeedback: payload.managerFeedback,
+      estimatedDays: payload.estimatedDays,
+    });
+  };
 
   return (
     <div className="space-y-6">
-        <Breadcrumbs
-            items={[{ label: 'Submissions', to: '/manager/submissions' }, { label: "Detail Submissions" || 'Detail' }]}
-        />
+      <Breadcrumbs
+        items={[
+          { label: "Submissions", to: "/manager/submissions" },
+          { label: "Detail Submission" },
+        ]}
+      />
 
-        <SubmissionDetailCard
+      <SubmissionDetailCard
         data={data}
-        onApprove={() => console.log("APPROVE")}
-        onRevision={() => {
-          console.log("REJECT CLICKED"); // 🔍 DEBUG
-          setOpenReject(true);           // 🔥 INI YANG BUKA MODAL
-        }}
-      />  {/* yang statusnya "Approved" ini ga nyala / disable */}
+        onApprove={handleApprove}
+        onRevision={() => setOpenReject(true)}
+      />
 
-        <SubmissionSections
-            sections={sections}
-            currentProgress={2} // Addinda baru sampai section 2
-        />
-    <SubmissionModalReject
+      <SubmissionSections
+        sections={data.sections}
+        currentProgress={data.completedCount}
+      />
+
+      <SubmissionModalReject
         open={openReject}
         onClose={() => setOpenReject(false)}
-        maxOrder={4} // total section
-        onSubmit={(payload) => {
-          console.log("REVISION DATA:", payload);
-          /*
-            payload = {
-              description,
-              targetDate,
-              orderIndex
-            }
-          */
-        }}
+        maxOrder={data.totalCount}
+        onSubmit={handleReject}
       />
     </div>
   );
