@@ -17,9 +17,7 @@ const getHeaders = () => {
 };
 
 export const submissionAPI = {
-  // ===============================
   // GET LIST
-  // ===============================
   getSubmissions: async () => {
     const res = await fetch(`${API_BASE_URL}/submissions`, {
       headers: getHeaders(),
@@ -27,9 +25,7 @@ export const submissionAPI = {
     return handleResponse(res);
   },
 
-  // ===============================
   // GET DETAIL
-  // ===============================
   getSubmissionDetail: async (id) => {
     const res = await fetch(
       `${API_BASE_URL}/submissions/${id}`,
@@ -38,9 +34,7 @@ export const submissionAPI = {
     return handleResponse(res);
   },
 
-  // ===============================
   // REVIEW (APPROVE / REJECT) 🔥 SATU-SATUNYA
-  // ===============================
   reviewSubmission: async (id, payload) => {
     const res = await fetch(
       `${API_BASE_URL}/submissions/${id}/review`,

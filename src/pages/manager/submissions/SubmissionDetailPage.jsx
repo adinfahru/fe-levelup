@@ -20,25 +20,21 @@ export default function SubmissionDetailPage() {
   const queryClient = useQueryClient();
   const [openReject, setOpenReject] = useState(false);
 
-  // ===============================
   // FETCH DETAIL
-  // ===============================
   const { data, isLoading, isError } = useQuery({
     queryKey: ["submission-detail", submissionId],
     queryFn: () => submissionAPI.getSubmissionDetail(submissionId),
     enabled: !!submissionId,
   });
 
-  // ===============================
   // REVIEW MUTATION (APPROVE / REJECT)
-  // ===============================
   const reviewMutation = useMutation({
     mutationFn: (payload) =>
       submissionAPI.reviewSubmission(submissionId, payload),
     onSuccess: () => {
       setOpenReject(false);
 
-      // 🔥 refresh detail & list
+      // refresh detail & list
       queryClient.invalidateQueries({
         queryKey: ["submission-detail", submissionId],
       });
@@ -51,9 +47,7 @@ export default function SubmissionDetailPage() {
   if (isLoading) return <p>Loading detail...</p>;
   if (isError || !data) return <p>Failed to load submission</p>;
 
-  // ===============================
   // HANDLERS
-  // ===============================
   const handleApprove = () => {
     reviewMutation.mutate({
       status: "Approved",

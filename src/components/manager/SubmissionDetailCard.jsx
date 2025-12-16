@@ -8,7 +8,6 @@ export default function SubmissionDetailCard({
   onApprove,
   onRevision,
 }) {
-  // 🔥 FIX: disable kalau SUDAH DIREVIEW
   const isReviewed = data.status !== "Pending";
 
   const statusColor = {
@@ -44,7 +43,7 @@ export default function SubmissionDetailCard({
             {data.notes || "No notes provided."}
           </p>
 
-          {/* 🔥 TAMPILKAN FEEDBACK KALO ADA */}
+          {/* TAMPILKAN FEEDBACK KALO ADA */}
           {data.managerFeedback && (
             <div className="mt-4 rounded-lg bg-rose-50 p-4">
               <p className="text-sm font-medium text-rose-700">
