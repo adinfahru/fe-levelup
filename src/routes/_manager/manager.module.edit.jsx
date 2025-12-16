@@ -4,8 +4,14 @@ import { modulesAPI } from '@/api/modules.api';
 
 export const Route = createFileRoute('/_manager/manager/module/edit')({
   component: ModuleEdit,
-  loader: async ({ context, search }) => {
-    const id = search?.id;
+  validateSearch: (search) => {
+    return {
+      id: search.id || '',
+    };
+  },
+  loaderDeps: ({ search }) => ({ id: search.id }),
+  loader: async ({ context, deps }) => {
+    const id = deps.id;
     if (!id) return null;
     return context.queryClient.ensureQueryData({
       queryKey: ['modules', id],
