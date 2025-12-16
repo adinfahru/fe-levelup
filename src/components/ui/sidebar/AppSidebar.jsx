@@ -25,9 +25,10 @@ export default function AppSidebar({ title, items, onLogout }) {
   };
 
   const isItemActive = (item) => {
-    if (item.exact) {
-      return pathname === item.to;
+    if (item.activePaths) {
+      return item.activePaths.some((path) => pathname === path || pathname.startsWith(path + '/'));
     }
+
     return pathname === item.to || pathname.startsWith(item.to + '/');
   };
 

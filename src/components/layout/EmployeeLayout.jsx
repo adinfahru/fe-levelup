@@ -9,19 +9,22 @@ const employeeItems = [
     title: 'Dashboard',
     to: '/employee/dashboard',
     icon: LayoutDashboard,
-    exact: true,
+    activePaths: [
+      '/employee/dashboard',
+      '/employee/module', // 👈 penting
+    ],
   },
   {
     title: 'Enrollment',
     to: '/employee/enrollments',
     icon: BookOpenText,
-    exact: true, 
+    activePaths: ['/employee/enrollments'],
   },
   {
     title: 'History',
-    to: '/employee/enrollments/history',
+    to: '/employee/history',
     icon: LibraryBig,
-    exact: true,
+    activePaths: ['/employee/history'],
   },
 ];
 

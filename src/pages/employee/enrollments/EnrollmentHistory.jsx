@@ -1,67 +1,46 @@
-import { Link } from '@tanstack/react-router';
+import { useState } from 'react'
+import { getRouteApi } from '@tanstack/react-router'
+import { Input } from '@/components/ui/input'
+import { Button } from '@/components/ui/button'
+import { Search } from 'lucide-react'
+import { ModuleCard } from '@/components/employee/ModuleCard'
 
-// Dummy data for enrollment history - API not ready yet
-const dummyHistory = [
-  {
-    id: 1,
-    moduleName: 'JavaScript ES6+',
-    status: 'Completed',
-    completedDate: '2023-12-15',
-    score: 95,
-  },
-  {
-    id: 2,
-    moduleName: 'Node.js Basics',
-    status: 'Completed',
-    completedDate: '2023-11-20',
-    score: 88,
-  },
-  {
-    id: 3,
-    moduleName: 'Git & GitHub',
-    status: 'Completed',
-    completedDate: '2023-10-10',
-    score: 92,
-  },
-];
+const Route = getRouteApi('/_employee/employee/history')
 
 export default function EnrollmentHistory() {
-  const history = dummyHistory;
+  const [search, setSearch] = useState('')
+  const data = Route.useLoaderData()
+
+  // 🔥 SAMA PERSIS kayak dashboard
+  const modules = data?.items || []
+
+  const filtered = modules.filter((m) =>
+    m.title?.toLowerCase().includes(search.toLowerCase())
+  )
 
   return (
-    <div className="space-y-4 p-6">
-      <h1 className="text-2xl font-bold">Enrollment History</h1>
+    <div className="w-full p-6 space-y-6">
+      <h2 className="text-xl font-semibold">History Module</h2>
 
-      {history && history.length > 0 ? (
-        <div className="border rounded-lg overflow-hidden">
-          <table className="w-full">
-            <thead className="bg-gray-100">
-              <tr>
-                <th className="px-4 py-3 text-left">Module</th>
-                <th className="px-4 py-3 text-left">Status</th>
-                <th className="px-4 py-3 text-left">Completed Date</th>
-                <th className="px-4 py-3 text-left">Score</th>
-              </tr>
-            </thead>
-            <tbody>
-              {history.map((item) => (
-                <tr key={item.id} className="border-t hover:bg-gray-50">
-                  <td className="px-4 py-3">{item.moduleName || 'N/A'}</td>
-                  <td className="px-4 py-3">{item.status || 'N/A'}</td>
-                  <td className="px-4 py-3">{item.completedDate || 'N/A'}</td>
-                  <td className="px-4 py-3">{item.score || '-'}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+      <div className="flex items-center gap-3 w-full max-w-md">
+        <div className="relative w-full">
+          <Search className="absolute left-2 top-2.5 w-4 h-4 text-gray-500" />
+          <Input
+            placeholder="Search module"
+            className="pl-8"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
         </div>
-      ) : (
-        <p className="text-gray-500">No enrollment history</p>
-      )}
 
-      <Link to="/employee/enrollments" className="text-indigo-800 hover:underline">
-        Back to Current Enrollment
-      </Link>
+        <Button variant="outline">Filter</Button>
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+        {filtered.map((item) => (
+          <ModuleCard key={item.id} data={item} />
+        ))}
+      </div>
     </div>
-  );
+  )
 }
