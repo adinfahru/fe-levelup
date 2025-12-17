@@ -1,22 +1,26 @@
-import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { SubmissionCard } from "@/components/manager/SubmissionCard";
-import { Input } from "@/components/ui/input";
+import { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { SubmissionCard } from '@/components/manager/SubmissionCard';
+import { Input } from '@/components/ui/input';
 import {
   Select,
   SelectTrigger,
   SelectValue,
   SelectContent,
   SelectItem,
-} from "@/components/ui/select";
-import { submissionAPI } from "@/api/submission.api";
+} from '@/components/ui/select';
+import { submissionAPI } from '@/api/submission.api';
 
 export default function SubmissionList() {
-  const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all");
+  const [search, setSearch] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
 
-  const { data = [], isLoading, isError } = useQuery({
-    queryKey: ["submissions"],
+  const {
+    data = [],
+    isLoading,
+    isError,
+  } = useQuery({
+    queryKey: ['submissions'],
     queryFn: submissionAPI.getSubmissions,
   });
 
@@ -28,22 +32,27 @@ export default function SubmissionList() {
     return <p className="text-sm text-red-500">Failed to load submissions</p>;
   }
 
-  const filtered = data.filter((item) => {
+  // Ensure data is an array
+  const submissions = Array.isArray(data) ? data : [];
+
+  const filtered = submissions.filter((item) => {
     const matchSearch =
       item.employeeName.toLowerCase().includes(search.toLowerCase()) ||
       item.moduleTitle.toLowerCase().includes(search.toLowerCase());
 
-    const matchStatus =
-      statusFilter === "all" || item.status === statusFilter;
+    const matchStatus = statusFilter === 'all' || item.status === statusFilter;
 
     return matchSearch && matchStatus;
   });
+
+  console.log('Filtered submissions:', filtered);
 
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <h1 className="text-2xl font-semibold">Manager Submission & Review</h1>
 
+        </div>
         <div className="flex gap-3">
           <Input
             placeholder="Search employee..."
@@ -63,7 +72,6 @@ export default function SubmissionList() {
               <SelectItem value="Rejected">Rejected</SelectItem>
             </SelectContent>
           </Select>
-        </div>
       </div>
 
       <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
