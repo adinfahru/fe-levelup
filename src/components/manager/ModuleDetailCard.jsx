@@ -1,36 +1,40 @@
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Switch } from "@/components/ui/switch";
-import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
-import { Pencil, Trash, Users } from "lucide-react";
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Switch } from '@/components/ui/switch';
+import { Button } from '@/components/ui/button';
+import { Separator } from '@/components/ui/separator';
+import { Pencil, Users } from 'lucide-react';
 import { useNavigate } from '@tanstack/react-router';
 
 export function ModuleDetailCard({ data, onToggleActive }) {
   const isActive = data?.isActive;
   const navigate = useNavigate();
 
+  // Can only edit when module is INACTIVE
+  const canEdit = !isActive;
+
   return (
     <Card className="rounded-2xl border border-gray-200 shadow-md bg-white relative p-6">
-      {/* TOP RIGHT: DELETE + EDIT + SWITCH */}
+      {/* TOP RIGHT: EDIT + SWITCH */}
       <div className="absolute top-4 right-4 flex items-center gap-3">
-        <Button 
-          size="icon" 
-          variant="destructive" 
-          className="rounded-md" 
-          onClick={() => onDelete && onDelete(data.id)}
+        <Button
+          size="icon"
+          variant="outline"
+          className="rounded-md"
+          onClick={() => navigate({ to: '/manager/module/edit', search: { id: data.id } })}
+          disabled={!canEdit}
+          title={isActive ? 'Deactivate module first to edit' : 'Edit module'}
         >
-          <Trash className="w-4 h-4" />
-        </Button>
-
-        <Button size="icon" variant="outline" className="rounded-md" onClick={() =>
-            navigate({ to: '/manager/module/edit'})}>
           <Pencil className="w-4 h-4" />
         </Button>
 
         <div className="flex items-center gap-2">
-          <Switch checked={isActive} onCheckedChange={onToggleActive} />
-          <span className="text-sm font-medium">{isActive ? "On" : "Off"}</span>
+          <Switch
+            checked={isActive}
+            onCheckedChange={onToggleActive}
+            title="Toggle module status (active/inactive)"
+          />
+          <span className="text-sm font-medium">{isActive ? 'Active' : 'Inactive'}</span>
         </div>
       </div>
 
@@ -42,14 +46,16 @@ export function ModuleDetailCard({ data, onToggleActive }) {
           <Badge className="px-3 py-1 bg-gray-700">{data.duration}</Badge>
         </div>
       </CardHeader>
-
+    
       <CardContent className="space-y-6">
         {/* TOP INFO ROW */}
         <div className="flex items-center gap-4 flex-wrap text-sm text-gray-600">
-          <span>Created by <strong>{data.createdBy}</strong></span>
+          <span>
+            Created by <strong>{data.createdBy}</strong>
+          </span>
           <Separator orientation="vertical" className="h-4" />
-          <span>{data.enrolled} enrolled</span>
-          <span>{data.active} active</span>
+          <span>{data.enrolledCount || 0} enrolled</span>
+          <span>{data.activeCount || 0} active</span>
         </div>
 
         {/* DESCRIPTION */}
@@ -59,7 +65,7 @@ export function ModuleDetailCard({ data, onToggleActive }) {
         <button
           onClick={() =>
             navigate({
-              to: "/manager/module/enrolled",
+              to: '/manager/module/enrolled',
               search: { moduleId: data.id },
             })
           }

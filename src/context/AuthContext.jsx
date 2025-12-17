@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { authAPI } from '@/api/auth.api';
 import { AuthContext } from './auth.context';
+import { isTokenExpired } from '@/lib/api';
 
 export function AuthProvider({ children }) {
   // Initialize user from localStorage
@@ -22,17 +23,39 @@ export function AuthProvider({ children }) {
 
   const [isLoading] = useState(false);
 
+  // Check token expiration on mount and periodically
+  useEffect(() => {
+    const checkTokenExpiration = () => {
+      if (user && isTokenExpired()) {
+        // Token expired, logout silently
+        // eslint-disable-next-line react-hooks/immutability
+        logout();
+      }
+    };
+
+    // Check immediately
+    checkTokenExpiration();
+
+    // Check every minute
+    const interval = setInterval(checkTokenExpiration, 60000);
+
+    return () => clearInterval(interval);
+  }, [user]);
+
   const login = async (credentials) => {
     try {
       const response = await authAPI.login(credentials);
 
       // API returns: { status: 200, message: "...", data: { token, email, role, expiresAt } }
-      const { token, email, role } = response.data;
+      const { token, email, role, firstName, lastName, expiresAt } = response.data;
 
       // Build user object
       const userData = {
         email,
         role,
+        firstName,
+        lastName,
+        expiresAt,
       };
 
       // Store token and user data
@@ -63,7 +86,6 @@ export function AuthProvider({ children }) {
 
       return { success: true };
     } catch (error) {
-      console.error('Login failed:', error);
       return { success: false, error: error.message };
     }
   };

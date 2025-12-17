@@ -80,8 +80,8 @@ export default function UserDetail() {
               </p>
             </div>
             <div>
-              <label className="text-sm text-gray-500">Position ID</label>
-              <p className="font-semibold">{user.positionId || 'N/A'}</p>
+              <label className="text-sm text-gray-500">Position Name</label>
+              <p className="font-semibold">{user.positionName || 'N/A'}</p>
             </div>
             <div>
               <label className="text-sm text-gray-500">Status</label>
