@@ -1,92 +1,78 @@
-import { useQuery, useQueryClient } from "@tanstack/react-query";
-import DashboardIdleTable from "@/components/manager/DashboardIdleTable";
-import DashboardEnrollTable from "@/components/manager/DashboardEnrollTable";
-import DashboardStats from "@/components/manager/DashboardStats";
-import { dashboardAPI } from "@/api/dashboard.api";
+import DashboardIdleTable from '@/components/manager/DashboardIdleTable';
+import DashboardEnrollTable from '@/components/manager/DashboardEnrollTable';
+import DashboardStats from '@/components/manager/DashboardStats';
+
+// Dummy data for enrollments - API not ready yet
+const dummyEnrollments = [
+  {
+    id: 1,
+    employeeName: 'John Doe',
+    moduleName: 'React Advanced',
+    status: 'Active',
+    progress: 75,
+    startDate: '2024-01-15',
+    endDate: '2024-03-15',
+  },
+  {
+    id: 2,
+    employeeName: 'Jane Smith',
+    moduleName: 'Node.js Fundamentals',
+    status: 'Active',
+    progress: 50,
+    startDate: '2024-02-01',
+    endDate: '2024-04-01',
+  },
+  {
+    id: 3,
+    employeeName: 'Bob Johnson',
+    moduleName: 'Database Design',
+    status: 'Idle',
+    progress: 0,
+    startDate: null,
+    endDate: null,
+  },
+  {
+    id: 4,
+    employeeName: 'Alice Williams',
+    moduleName: 'Python Basics',
+    status: 'Active',
+    progress: 90,
+    startDate: '2024-01-01',
+    endDate: '2024-03-01',
+  },
+  {
+    id: 5,
+    employeeName: 'Charlie Brown',
+    moduleName: 'DevOps Essentials',
+    status: 'Idle',
+    progress: 0,
+    startDate: null,
+    endDate: null,
+  },
+];
 
 export default function ManagerDashboard() {
-  const queryClient = useQueryClient();
+  const enrollments = dummyEnrollments;
 
-  // EMPLOYEES
-  const {
-    data: employees = [],
-    isLoading: loadingEmployees,
-    isError: employeeError,
-  } = useQuery({
-    queryKey: ["employees"],
-    queryFn: dashboardAPI.getEmployees,
-  });
-
-  // ENROLLMENTS
-  const {
-    data: enrollments = [],
-    isLoading: loadingEnrollments,
-    isError: enrollError,
-  } = useQuery({
-    queryKey: ["enrollments"],
-    queryFn: dashboardAPI.getEnrollmentsByManager,
-  });
-
-  // DASHBOARD STATS
-  const {
-    data: statsData,
-    isLoading: loadingStats,
-    isError: statsError,
-  } = useQuery({
-    queryKey: ["dashboardStats"],
-    queryFn: dashboardAPI.getManagerDashboard,
-  });
-
-if (employeeError) {
-  console.error("Employees error");
-}
-
-if (enrollError) {
-  console.error("Enrollments error");
-}
-
-if (statsError) {
-  console.error("Stats error");
-}
-
-
-  const loading = loadingEmployees || loadingEnrollments || loadingStats;
+  // Filter enrollments to get idle and currently enrolled
+  const idleEmployees = (enrollments || []).filter((e) => e.status === 'Idle');
+  const activeEnrollments = (enrollments || []).filter((e) => e.status === 'Active');
 
   return (
-    <div className="p-4 space-y-6">
-      <div>
-        <h2 className="text-2xl font-bold">Manager Dashboard</h2>
-        <p className="text-gray-500">Overview & employee monitoring</p>
-      </div>
+    <div className="p-4">
+      <h2 className="text-2xl font-bold">Manager Dashboard</h2>
+      <p className="mb-4">Dashboard overview and statistics</p>
 
-      {statsData && (
-  <DashboardStats
-    totalIdle={statsData.totalIdle ?? 0}
-    totalEnroll={statsData.totalEnroll ?? 0}
-    totalModules={statsData.totalModules ?? 0}
-  />
-)}
+      {/* ==== 3 Cards ==== */}
+      <DashboardStats data={enrollments || []} />
 
-
-      {loading ? (
-        <p className="text-sm text-gray-500">Loading dashboard...</p>
-      ) : (
-        <>
-          <DashboardEnrollTable enrollments={enrollments} />
-          <DashboardIdleTable
-            data={employees.map((e) => ({
-              ...e,
-              status: e.isIdle ? "Idle" : "Not Idle",
-            }))}
-            onToggleStatus={async (id, isIdle) => {
-              await dashboardAPI.updateEmployeeStatus(id, isIdle);
-              queryClient.invalidateQueries({ queryKey: ["employees"] });
-              queryClient.invalidateQueries({ queryKey: ["enrollments"] });
-              queryClient.invalidateQueries({ queryKey: ["dashboardStats"] });
-            }}
-          />
-        </>
-      )}
+      {/* ==== Tables ==== */}
+      <DashboardEnrollTable data={activeEnrollments} />
+      <DashboardIdleTable
+        data={idleEmployees}
+        onView={(user) => console.log('View user detail:', user)}
+        onToggleStatus={(user) => console.log('Toggle:', user)}
+      />
     </div>
   );
 }

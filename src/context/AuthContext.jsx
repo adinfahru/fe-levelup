@@ -51,7 +51,6 @@ export function AuthProvider({ children }) {
 
       // Build user object
       const userData = {
-        id,
         email,
         role,
         firstName,
