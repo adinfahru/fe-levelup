@@ -47,7 +47,7 @@ export function AuthProvider({ children }) {
       const response = await authAPI.login(credentials);
 
       // API returns: { status: 200, message: "...", data: { token, email, role, expiresAt } }
-      const { token, email, role, id, firstName, lastName, expiresAt } = response.data;
+      const { token, email, role, firstName, lastName, expiresAt } = response.data;
 
       // Build user object
       const userData = {
@@ -86,7 +86,6 @@ export function AuthProvider({ children }) {
 
       return { success: true };
     } catch (error) {
-      console.error('Login failed:', error);
       return { success: false, error: error.message };
     }
   };
