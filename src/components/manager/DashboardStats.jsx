@@ -34,7 +34,6 @@ export default function DashboardStats({ totalIdle, totalEnroll, totalModules })
 
           <CardContent>
             <p className="text-4xl font-bold text-gray-900">{item.value}</p>
-            <p className="text-sm text-gray-500 mt-1">Updated just now</p>
           </CardContent>
         </Card>
       ))}
