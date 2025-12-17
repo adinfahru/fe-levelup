@@ -15,6 +15,7 @@ export const Route = createFileRoute('/_manager/manager/module/detail')({
     if (!id) return null;
 
     try {
+      // Get module data - backend should include enrolledCount and activeCount
       const data = await modulesAPI.getById(id);
       return data;
     } catch (error) {

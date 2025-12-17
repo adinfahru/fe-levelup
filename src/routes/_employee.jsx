@@ -1,5 +1,6 @@
 import { createFileRoute, redirect } from '@tanstack/react-router';
 import EmployeeLayout from '../components/layout/EmployeeLayout';
+import { isTokenExpired } from '@/lib/api';
 
 export const Route = createFileRoute('/_employee')({
   component: EmployeeLayout,
@@ -7,7 +8,8 @@ export const Route = createFileRoute('/_employee')({
     const token = localStorage.getItem('token');
     const userData = localStorage.getItem('user');
 
-    if (!token || !userData) {
+    // Check if token exists and is not expired
+    if (!token || !userData || isTokenExpired()) {
       throw redirect({
         to: '/login',
         search: { redirect: location.href },
