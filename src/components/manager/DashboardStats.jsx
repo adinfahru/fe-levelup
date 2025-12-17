@@ -9,7 +9,7 @@ export default function DashboardStats({ totalIdle, totalEnroll, totalModules })
       icon: <Users className="h-10 w-10 text-indigo-800" />,
     },
     {
-      title: "Total User Enroll",
+      title: "Total User Enroll", 
       value: totalEnroll,
       icon: <UserCheck className="h-10 w-10 text-indigo-800" />,
     },

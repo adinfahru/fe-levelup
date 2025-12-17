@@ -35,7 +35,7 @@ export const dashboardAPI = {
     return result.data;
   },
 
-  getEmployeeDetail: async (employeeId) => {
+  getEmployeeDetail: async (employeeId) => {  
     const res = await fetch(
       `${API_BASE_URL}/dashboard/manager/employees/${employeeId}/detail`,
       { headers: getHeaders() }
