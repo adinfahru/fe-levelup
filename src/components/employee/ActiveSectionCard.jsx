@@ -1,81 +1,113 @@
-import { Card } from '@/components/ui/card'
-import { Textarea } from '@/components/ui/textarea'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { useState } from 'react'
+import { Card } from '@/components/ui/card';
+import { Textarea } from '@/components/ui/textarea';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { useState } from 'react';
+import { enrollmentAPI } from '@/api/enrollment.api';
+import { useNavigate } from '@tanstack/react-router';
 
-export default function ActiveSectionCard({ section }) {
-  const [feedback, setFeedback] = useState('')
-  const [evidenceUrl, setEvidenceUrl] = useState('')
+export default function ActiveSectionCard({ section, enrollmentId }) {
+  const [feedback, setFeedback] = useState('');
+  const [evidenceUrl, setEvidenceUrl] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = () => {
-    const payload = {
-      module_item_id: section.id,
-      feedback,
-      evidence_url: evidenceUrl,
+  const navigate = useNavigate();
+
+  /**
+   * 🔐 LOCK RULE (PALING PENTING)
+   * Final submission → sekali submit → terkunci
+   * Dibuka lagi HANYA oleh manager (BE set isCompleted = false)
+   */
+  const isLocked = section.isFinalSubmission && section.isCompleted;
+
+  const handleSubmit = async () => {
+    if (isLocked) return; // hard stop
+
+    setLoading(true);
+    try {
+      await enrollmentAPI.submitItem(enrollmentId, {
+        moduleItemId: section.moduleItemId,
+        feedback,
+        evidenceUrl,
+      });
+
+      // reload state dari BE
+      navigate({ to: '/employee/enrollments', replace: true });
+    } catch (err) {
+      alert(err.message);
+    } finally {
+      setLoading(false);
     }
-
-    console.log('SUBMIT PAYLOAD:', payload)
-
-    // nanti tinggal:
-    // POST /enrollments/items/complete
-  }
+  };
 
   return (
-    <Card className="bg-white border shadow-sm rounded-2xl p-6 space-y-6">
-      <h4 className="text-sm font-semibold text-gray-700">
-        {section.title}
-      </h4>
+    <Card className="bg-white border shadow-sm rounded-2xl p-8 space-y-8">
+      {/* TITLE */}
+      <div className="space-y-1">
+        <h4 className="text-lg font-semibold text-gray-900">{section.moduleItemTitle}</h4>
+        <p className="text-sm text-gray-500">{section.moduleItemDescription}</p>
+      </div>
 
-      <div className="rounded-xl border p-6 space-y-5">
-        {/* Description */}
-        <p className="text-sm text-gray-600">
-          {section.description}
-        </p>
+      {/* RESOURCE */}
+      <a
+        href={section.moduleItemUrl}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="inline-block text-sm font-medium text-indigo-600 hover:text-indigo-700 underline"
+      >
+        View resource →
+      </a>
 
-        {/* Resource */}
-        <a
-          href={section.url}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-indigo-600 underline text-sm block"
-        >
-          View resource
-        </a>
+      {/* FINAL SUBMISSION INFO */}
+      {isLocked && (
+        <div className="flex items-start gap-3 rounded-xl border border-yellow-300 bg-yellow-50 p-4 text-yellow-900">
+          <span className="text-lg">✅</span>
+          <div className="text-sm">
+            <p className="font-medium">Final submission has been sent</p>
+            <p className="text-yellow-700">Waiting for manager review</p>
+          </div>
+        </div>
+      )}
 
-        {/* Evidence URL */}
-        <div className="space-y-1">
-          <label className="text-xs font-medium text-gray-600">
-            Evidence URL
-          </label>
+      {/* FORM */}
+      <div className="space-y-5">
+        {/* EVIDENCE */}
+        <div className="space-y-1.5">
+          <label className="text-sm font-medium text-gray-700">Evidence URL</label>
           <Input
-            placeholder="https://github.com/username/repo"
+            className="text-sm"
             value={evidenceUrl}
             onChange={(e) => setEvidenceUrl(e.target.value)}
+            disabled={isLocked}
           />
         </div>
 
-        {/* Feedback */}
-        <div className="space-y-1">
-          <label className="text-xs font-medium text-gray-600">
-            Daily Report / Feedback
-          </label>
+        {/* DAILY REPORT */}
+        <div className="space-y-1.5">
+          <label className="text-sm font-medium text-gray-700">Daily Report</label>
           <Textarea
-            placeholder="What did you learn today?"
+            className="min-h-[120px] text-sm"
             value={feedback}
             onChange={(e) => setFeedback(e.target.value)}
+            disabled={isLocked}
           />
         </div>
+      </div>
 
-        {/* Submit */}
+      {/* ACTION */}
+      <div className="pt-2">
         <Button
           onClick={handleSubmit}
-          disabled={!feedback || !evidenceUrl}
-          className="w-fit"
+          disabled={isLocked || loading || !feedback || !evidenceUrl}
+          className="px-6"
         >
-          Submit & Complete Section
+          {isLocked
+            ? 'Waiting for Review'
+            : loading
+              ? 'Submitting...'
+              : 'Submit & Complete Section'}
         </Button>
       </div>
     </Card>
-  )
+  );
 }

@@ -1,18 +1,18 @@
-const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL || 'https://localhost:7118/api/v1';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://localhost:7118/api/v1';
 
 /* =========================
    RESPONSE HANDLER
 ========================= */
 const handleResponse = async (response) => {
+  const result = await response.json().catch(() => ({}));
+
   if (!response.ok) {
-    const error = await response.json().catch(() => ({}));
-    throw new Error(error.message || 'An error occurred');
+    throw new Error(
+      result.message || result.Message || result.error || result.Error || 'An error occurred'
+    );
   }
 
-  const result = await response.json();
-  // Backend returns { status, message, data }
-  return result.data ?? result;
+  return result.data ?? result.Data ?? result;
 };
 
 /* =========================
@@ -35,13 +35,10 @@ export const enrollmentAPI = {
      GET CURRENT ENROLLMENT
   ------------------------- */
   getCurrent: async () => {
-    const res = await fetch(
-      `${API_BASE_URL}/enrollments/current`,
-      {
-        method: 'GET',
-        headers: getHeaders(),
-      }
-    );
+    const res = await fetch(`${API_BASE_URL}/enrollments/current`, {
+      method: 'GET',
+      headers: getHeaders(),
+    });
 
     // 204 No Content → berarti belum enroll
     if (res.status === 204) return null;
@@ -53,14 +50,11 @@ export const enrollmentAPI = {
      ENROLL MODULE
   ------------------------- */
   enroll: async (moduleId) => {
-    const res = await fetch(
-      `${API_BASE_URL}/enrollments`,
-      {
-        method: 'POST',
-        headers: getHeaders(),
-        body: JSON.stringify({ moduleId }),
-      }
-    );
+    const res = await fetch(`${API_BASE_URL}/enrollments`, {
+      method: 'POST',
+      headers: getHeaders(),
+      body: JSON.stringify({ moduleId }),
+    });
 
     return handleResponse(res);
   },
@@ -69,13 +63,10 @@ export const enrollmentAPI = {
      GET PROGRESS
   ------------------------- */
   getProgress: async (enrollmentId) => {
-    const res = await fetch(
-      `${API_BASE_URL}/enrollments/${enrollmentId}/progress`,
-      {
-        method: 'GET',
-        headers: getHeaders(),
-      }
-    );
+    const res = await fetch(`${API_BASE_URL}/enrollments/${enrollmentId}/progress`, {
+      method: 'GET',
+      headers: getHeaders(),
+    });
 
     return handleResponse(res);
   },
@@ -92,14 +83,11 @@ export const enrollmentAPI = {
      *   evidenceUrl
      * }
      */
-    const res = await fetch(
-      `${API_BASE_URL}/enrollments/${enrollmentId}/items`,
-      {
-        method: 'POST',
-        headers: getHeaders(),
-        body: JSON.stringify(payload),
-      }
-    );
+    const res = await fetch(`${API_BASE_URL}/enrollments/${enrollmentId}/items`, {
+      method: 'POST',
+      headers: getHeaders(),
+      body: JSON.stringify(payload),
+    });
 
     return handleResponse(res);
   },
@@ -108,13 +96,10 @@ export const enrollmentAPI = {
      RESUME ENROLLMENT
   ------------------------- */
   resume: async (enrollmentId) => {
-    const res = await fetch(
-      `${API_BASE_URL}/enrollments/${enrollmentId}/resume`,
-      {
-        method: 'POST',
-        headers: getHeaders(),
-      }
-    );
+    const res = await fetch(`${API_BASE_URL}/enrollments/${enrollmentId}/resume`, {
+      method: 'POST',
+      headers: getHeaders(),
+    });
 
     return handleResponse(res);
   },
@@ -123,13 +108,10 @@ export const enrollmentAPI = {
      GET HISTORY
   ------------------------- */
   getHistory: async () => {
-    const res = await fetch(
-      `${API_BASE_URL}/enrollments/history`,
-      {
-        method: 'GET',
-        headers: getHeaders(),
-      }
-    );
+    const res = await fetch(`${API_BASE_URL}/enrollments/history`, {
+      method: 'GET',
+      headers: getHeaders(),
+    });
 
     return handleResponse(res);
   },

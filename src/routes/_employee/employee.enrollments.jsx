@@ -1,37 +1,62 @@
-// src/routes/_employee/employee.enrollments.jsx
-import { createFileRoute } from '@tanstack/react-router'
-import EnrollmentProgressPage from '@/pages/employee/enrollments/EnrollmentProgressPage'
-
-/* 🔹 DUMMY DATA (1 enrollment aktif) */
-const enrollmentProgressDummy = {
-  module: {
-    id: '1',
-    title: '.NET Learning Path 1',
-    createdBy: 'XXXX',
-    enrolled: 50,
-    active: 10,
-    sectionsCount: 6,
-    duration: '1 week',
-    description:
-      'Learn .NET fundamentals with hands-on examples and structured learning path.',
-  },
-  progress: {
-    percentage: 50,
-    completedSections: 2,
-    totalSections: 5,
-    status: 'in_progress',
-  },
-  activeSection: {
-    id: 'section-1',
-    title: 'Section 1: Introduction',
-    description:
-      'Understand basic concepts and architecture overview.',
-    url: 'https://learn.microsoft.com/dotnet',
-    dailyReport: '',
-  },
-}
+import { createFileRoute } from '@tanstack/react-router';
+import EnrollmentCurrent from '@/pages/employee/enrollments/EnrollmentCurrent';
+import { enrollmentAPI } from '@/api/enrollment.api';
 
 export const Route = createFileRoute('/_employee/employee/enrollments')({
-  component: EnrollmentProgressPage,
-  loader: async () => enrollmentProgressDummy,
-})
+  component: EnrollmentCurrent,
+
+  loader: async () => {
+    const current = await enrollmentAPI.getCurrent();
+    if (!current) return null;
+
+    // pastikan urut
+    const sections = [...(current.sections ?? [])].sort((a, b) => a.orderIndex - b.orderIndex);
+
+    const totalSections = sections.length;
+    const completedSections = sections.filter((s) => s.isCompleted).length;
+
+    const unfinishedSection = sections.find((s) => !s.isCompleted);
+    const lastSection = sections[sections.length - 1];
+
+    /**
+     * ACTIVE SECTION RULE
+     * - OnGoing / Paused → tetap ada activeSection
+     * - prioritas unfinished
+     * - fallback ke last section (final submission)
+     */
+    const activeSection = unfinishedSection ?? lastSection ?? null;
+
+    /**
+     * STATE FLAGS
+     */
+    const isPaused = current.status === 'Paused';
+
+    const isWaitingReview =
+      current.status === 'OnGoing' &&
+      completedSections === totalSections &&
+      lastSection?.isFinalSubmission &&
+      lastSection?.isCompleted;
+
+    return {
+      enrollmentId: current.enrollmentId,
+
+      module: {
+        id: current.moduleId,
+        title: current.moduleTitle,
+        description: current.moduleDescription,
+        sectionsCount: totalSections,
+      },
+
+      progress: {
+        percentage: current.currentProgress,
+        completedSections,
+        totalSections,
+        status: current.status,
+      },
+
+      activeSection,
+      isPaused,
+      isWaitingReview,
+    };
+  },
+});
