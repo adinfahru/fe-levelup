@@ -44,6 +44,9 @@ export const Route = createFileRoute('/_employee/employee/enrollments')({
         id: current.moduleId,
         title: current.moduleTitle,
         description: current.moduleDescription,
+        startDate: current.startDate,
+        targetDate: current.targetDate,
+        isOverdue: current.isOverdue,
         sectionsCount: totalSections,
       },
 
