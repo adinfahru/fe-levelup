@@ -1,13 +1,14 @@
 import { Outlet } from '@tanstack/react-router';
 import { SidebarProvider } from '@/components/ui/sidebar';
-import { LayoutDashboard, BookOpen, Users } from 'lucide-react';
+import { LayoutDashboard, BookOpen, Users, FileCheck } from 'lucide-react';
 import AppSidebar from '@/components/ui/sidebar/AppSidebar';
 import { useAuth } from '@/hooks/useAuth';
 
 const managerItems = [
-  { title: 'Dashboard', to: '/manager/dashboard', icon: LayoutDashboard },
-  { title: 'Modules', to: '/manager/modules', icon: BookOpen },
-  { title: 'Employees', to: '/manager/employees', icon: Users },
+  { title: "Dashboard", to: "/manager/dashboard", icon: LayoutDashboard },
+  { title: "Modules", to: "/manager/modules", icon: BookOpen },
+  { title: "Employees", to: "/manager/employees", icon: Users },
+  { title: "Submissions", to: "/manager/submissions", icon: FileCheck },
 ];
 
 export default function ManagerLayout() {

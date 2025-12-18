@@ -17,7 +17,7 @@ export const Route = createFileRoute('/login')({
             : user.role === 'Manager'
               ? '/manager/dashboard'
               : user.role === 'Employee'
-                ? '/employee/enrollments'
+                ? '/employee/dashboard'
                 : '/';
 
         throw redirect({ to: dashboardPath });

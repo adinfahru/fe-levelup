@@ -1,5 +1,6 @@
 import { createFileRoute, redirect } from '@tanstack/react-router';
 import ManagerLayout from '../components/layout/ManagerLayout';
+import { isTokenExpired } from '@/lib/api';
 
 export const Route = createFileRoute('/_manager')({
   component: ManagerLayout,
@@ -7,7 +8,8 @@ export const Route = createFileRoute('/_manager')({
     const token = localStorage.getItem('token');
     const userData = localStorage.getItem('user');
 
-    if (!token || !userData) {
+    // Check if token exists and is not expired
+    if (!token || !userData || isTokenExpired()) {
       throw redirect({
         to: '/login',
         search: { redirect: location.href },

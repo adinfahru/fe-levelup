@@ -1,5 +1,6 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from '@tanstack/react-router';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   Table,
   TableBody,
@@ -19,8 +20,9 @@ import {
 import { Button } from '@/components/ui/button';
 import { usersAPI } from '@/api/users.api';
 
-export default function UsersTable({ users, positions }) {
+export default function UsersTable({ positions }) {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   // Create a map of positionId to position title for quick lookup
   const positionMap = useMemo(() => {
@@ -33,74 +35,120 @@ export default function UsersTable({ users, positions }) {
     return map;
   }, [positions]);
 
-  // Helper to get position title from positionId
-  const getPositionTitle = (positionId) => {
-    return positionMap[positionId] || 'N/A';
-  };
+  const getPositionTitle = (positionId) => positionMap[positionId] || 'N/A';
 
-  // Search + Filter
+  // Client-side controls (server-backed search/filter)
   const [search, setSearch] = useState('');
-  const [roleFilter, setRoleFilter] = useState('all');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+  const [roleFilter, setRoleFilter] = useState('');
+  const [statusFilter, setStatusFilter] = useState('');
 
-  // Pagination
+  // Server-driven pagination state
   const [page, setPage] = useState(1);
-  const pageSize = 10;
+  const limit = 10;
 
-  // Filtered data
-  const filtered = useMemo(() => {
-    if (!users || !Array.isArray(users)) return [];
+  const { data, isLoading, isFetching } = useQuery({
+    queryKey: ['users', page, debouncedSearch, roleFilter, statusFilter],
+    queryFn: ({ signal }) =>
+      usersAPI.getAll({
+        page,
+        limit,
+        search: debouncedSearch,
+        role: roleFilter && roleFilter !== 'all' ? roleFilter : undefined,
+        // map statusFilter to isActive param expected by backend
+        isActive:
+          statusFilter === 'active' ? true : statusFilter === 'inactive' ? false : undefined,
+        signal,
+      }),
+    keepPreviousData: true,
+    refetchOnWindowFocus: false,
+  });
 
-    return users.filter((item) => {
-      const matchSearch =
-        item.firstName?.toLowerCase().includes(search.toLowerCase()) ||
-        item.lastName?.toLowerCase().includes(search.toLowerCase()) ||
-        item.email?.toLowerCase().includes(search.toLowerCase());
+  const users = useMemo(() => data?.items ?? [], [data]);
+  const total = typeof data?.total === 'number' ? data.total : 0;
 
-      const matchRole = roleFilter === 'all' || item.role === roleFilter;
+  const deleteMutation = useMutation({
+    mutationFn: (id) => usersAPI.delete(id),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['users'] }),
+  });
 
-      return matchSearch && matchRole;
-    });
-  }, [search, roleFilter, users]);
-
-  const paginated = useMemo(() => {
-    const start = (page - 1) * pageSize;
-    return filtered.slice(start, start + pageSize);
-  }, [page, filtered]);
-
-  // Delete handler
   async function handleDelete(id) {
     if (!confirm('Are you sure you want to delete this user?')) return;
-
     try {
-      await usersAPI.delete(id);
-      window.location.reload();
-    } catch (error) {
-      alert('Failed to delete user: ' + error.message);
+      await deleteMutation.mutateAsync(id);
+    } catch (err) {
+      alert('Failed to delete user: ' + (err?.message || err));
     }
   }
+
+  // Debounce search input to avoid excessive requests
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedSearch(search.trim()), 400);
+    return () => clearTimeout(t);
+  }, [search]);
+
+  // Show server-provided items (already filtered by search/role)
+  const showing = users.length;
 
   return (
     <div className="space-y-4 p-4">
       {/* Search + Filter */}
-      <div className="flex gap-3">
-        <Input
-          placeholder="Search user..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="max-w-xs"
-        />
+      <div className="flex gap-5">
+        <div className="flex flex-col">
+          <span className="text-sm font-medium mb-1">Search</span>
+          <Input
+            placeholder="Search user..."
+            value={search}
+            onChange={(e) => {
+              setSearch(e.target.value);
+              if (page !== 1) setPage(1);
+            }}
+            className="max-w-xs"
+          />
+        </div>
 
-        <Select value={roleFilter} onValueChange={setRoleFilter}>
-          <SelectTrigger className="w-32">
-            <SelectValue placeholder="Role" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All</SelectItem>
-            <SelectItem value="Admin">Admin</SelectItem>
-            <SelectItem value="Manager">Manager</SelectItem>
-            <SelectItem value="Employee">Employee</SelectItem>
-          </SelectContent>
-        </Select>
+        <div className="flex gap-5">
+          <div className="flex flex-col">
+            <span className="text-sm font-medium mb-1">Role</span>
+            <Select
+              value={roleFilter}
+              onValueChange={(val) => {
+                setRoleFilter(val);
+                if (page !== 1) setPage(1);
+              }}
+            >
+              <SelectTrigger className="w-32">
+                <SelectValue placeholder="Role" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All</SelectItem>
+                <SelectItem value="Admin">Admin</SelectItem>
+                <SelectItem value="Manager">Manager</SelectItem>
+                <SelectItem value="Employee">Employee</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="flex flex-col">
+            <span className="text-sm font-medium mb-1">Status</span>
+            <Select
+              value={statusFilter}
+              onValueChange={(val) => {
+                setStatusFilter(val);
+                if (page !== 1) setPage(1);
+              }}
+            >
+              <SelectTrigger className="w-36">
+                <SelectValue placeholder="Status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All</SelectItem>
+                <SelectItem value="active">Active</SelectItem>
+                <SelectItem value="inactive">Inactive</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
       </div>
 
       {/* Table */}
@@ -119,10 +167,16 @@ export default function UsersTable({ users, positions }) {
           </TableHeader>
 
           <TableBody>
-            {paginated.length > 0 ? (
-              paginated.map((user, index) => (
+            {isLoading ? (
+              <TableRow>
+                <TableCell colSpan={7} className="text-center py-6 text-gray-500">
+                  Loading...
+                </TableCell>
+              </TableRow>
+            ) : users.length > 0 ? (
+              users.map((user, index) => (
                 <TableRow key={user.accountId}>
-                  <TableCell>{(page - 1) * pageSize + index + 1}</TableCell>
+                  <TableCell>{(page - 1) * limit + index + 1}</TableCell>
                   <TableCell>
                     {user.firstName} {user.lastName}
                   </TableCell>
@@ -188,22 +242,22 @@ export default function UsersTable({ users, positions }) {
       {/* Pagination */}
       <div className="flex justify-between items-center pt-2">
         <p className="text-sm">
-          Showing {paginated.length} of {filtered.length}
+          Showing {showing} of {total} {isFetching && '· Updating...'}
         </p>
 
         <div className="flex gap-2">
           <Button
             variant="outline"
             onClick={() => setPage((p) => Math.max(1, p - 1))}
-            disabled={page === 1}
+            disabled={page === 1 || isFetching}
           >
             Prev
           </Button>
 
           <Button
             variant="outline"
-            onClick={() => setPage((p) => (filtered.length > p * pageSize ? p + 1 : p))}
-            disabled={filtered.length <= page * pageSize}
+            onClick={() => setPage((p) => p + 1)}
+            disabled={isFetching || page * limit >= total}
           >
             Next
           </Button>

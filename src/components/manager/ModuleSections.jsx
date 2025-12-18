@@ -1,6 +1,6 @@
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
-import { CheckCircle } from "lucide-react";
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { Separator } from '@/components/ui/separator';
+import { CheckCircle } from 'lucide-react';
 
 export function ModuleSections({ sections }) {
   return (
@@ -18,8 +18,8 @@ export function ModuleSections({ sections }) {
 
           <CardContent className="space-y-2 text-sm text-gray-600">
             {/* Description */}
-            {section.description ? (
-              <p>{section.description}</p>
+            {section.descriptions ? (
+              <p>{section.descriptions}</p>
             ) : (
               <p className="italic text-gray-400">No description provided</p>
             )}

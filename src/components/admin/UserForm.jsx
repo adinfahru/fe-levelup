@@ -87,9 +87,6 @@ export default function UserForm({ user, onSuccess, onCancel, positions }) {
       // Prepare payload - only send fields that exist in formData
       const payload = { ...formData };
 
-      console.log('Before processing - payload:', payload); // Debug log
-      console.log('Is Edit Mode:', !!user?.accountId); // Debug log
-
       // For edit mode: remove password field unless it has a non-empty value
       if (user?.accountId) {
         if (!payload.password || payload.password.trim() === '') {
@@ -114,12 +111,9 @@ export default function UserForm({ user, onSuccess, onCancel, positions }) {
       }
 
       // Ensure positionId is a valid UUID or null
-      if (!payload.positionId || payload.positionId === '') {
+      if (!payload.positionId || payload.positionId === '' || payload.positionId === '__NA') {
         delete payload.positionId;
       }
-
-      console.log('After processing - payload:', payload); // Debug log
-      console.log('Has password field?', 'password' in payload); // Debug log
 
       if (user?.accountId) {
         // Update user
@@ -132,7 +126,6 @@ export default function UserForm({ user, onSuccess, onCancel, positions }) {
       setLoading(false);
       onSuccess?.();
     } catch (err) {
-      console.error('Submit error:', err); // Debug log
       setError(err.message || 'An error occurred');
       setLoading(false);
     }
@@ -199,7 +192,6 @@ export default function UserForm({ user, onSuccess, onCancel, positions }) {
           onChange={handleChange}
           placeholder="john.doe@example.com"
           required
-          disabled={!!user?.accountId}
         />
       </div>
 
@@ -214,7 +206,7 @@ export default function UserForm({ user, onSuccess, onCancel, positions }) {
         <Input
           id="password"
           name="password"
-          type="password"
+          type="text"
           value={formData.password || ''}
           onChange={handleChange}
           placeholder={
@@ -249,6 +241,7 @@ export default function UserForm({ user, onSuccess, onCancel, positions }) {
               <SelectValue placeholder="Select position" />
             </SelectTrigger>
             <SelectContent>
+              <SelectItem value="__NA">N/A</SelectItem>
               {allPositions.map((pos) => (
                 <SelectItem key={pos.id} value={pos.id}>
                   {pos.title}

@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import {
   Table,
   TableBody,
@@ -7,32 +7,32 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
-import { Input } from "@/components/ui/input";
+} from '@/components/ui/table';
+import { Input } from '@/components/ui/input';
 import {
   Select,
   SelectTrigger,
   SelectValue,
   SelectContent,
   SelectItem,
-} from "@/components/ui/select";
-import { Button } from "@/components/ui/button";
-import { Switch } from "@/components/ui/switch";
-import DashboardDetailModal from "@/components/manager/DashboardDetailModal";
-import { Eye } from "lucide-react";
-import { dashboardAPI } from "@/api/dashboard.api";
+} from '@/components/ui/select';
+import { Button } from '@/components/ui/button';
+import { Switch } from '@/components/ui/switch';
+import DashboardDetailModal from '@/components/manager/DashboardDetailModal';
+import { Eye } from 'lucide-react';
+import { dashboardAPI } from '@/api/dashboard.api';
 
 export default function DashboardIdleTable({ data = [], onToggleStatus }) {
-  const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all");
+  const [search, setSearch] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
   const [page, setPage] = useState(1);
   const [selectedUser, setSelectedUser] = useState(null);
   const [openDetail, setOpenDetail] = useState(false);
 
   const pageSize = 5;
 
-  const { data: paginated = [], dataUpdatedAt } = useQuery({
-    queryKey: ["idle-users-view", data, search, statusFilter, page],
+  const { data: paginated = [] } = useQuery({
+    queryKey: ['idle-users-view', data, search, statusFilter, page],
     queryFn: () => data,
     select: (rows) => {
       const filtered = rows.filter((item) => {
@@ -40,8 +40,7 @@ export default function DashboardIdleTable({ data = [], onToggleStatus }) {
         const matchSearch =
           fullName.includes(search.toLowerCase()) ||
           item.email?.toLowerCase().includes(search.toLowerCase());
-        const matchStatus =
-          statusFilter === "all" || item.status === statusFilter;
+        const matchStatus = statusFilter === 'all' || item.status === statusFilter;
         return matchSearch && matchStatus;
       });
 
@@ -104,9 +103,9 @@ export default function DashboardIdleTable({ data = [], onToggleStatus }) {
               <TableCell>
                 <span
                   className={`px-2 py-1 rounded text-xs ${
-                    user.status === "Idle"
-                      ? "bg-green-100 text-green-700"
-                      : "bg-blue-100 text-blue-700"
+                    user.status === 'Idle'
+                      ? 'bg-green-100 text-green-700'
+                      : 'bg-blue-100 text-blue-700'
                   }`}
                 >
                   {user.status}
@@ -120,12 +119,11 @@ export default function DashboardIdleTable({ data = [], onToggleStatus }) {
                     size="sm"
                     variant="outline"
                     onClick={async (e) => {
-                      e.stopPropagation(); 
-                      const detail =
-                        await dashboardAPI.getEmployeeDetail(user.id);
+                      e.stopPropagation();
+                      const detail = await dashboardAPI.getEmployeeDetail(user.id);
                       setSelectedUser({
                         ...detail,
-                        status: detail.isIdle ? "Idle" : "Not Idle",
+                        status: detail.isIdle ? 'Idle' : 'Not Idle',
                       });
                       setOpenDetail(true);
                     }}
@@ -135,9 +133,7 @@ export default function DashboardIdleTable({ data = [], onToggleStatus }) {
 
                   <Switch
                     checked={user.isIdle}
-                    onCheckedChange={(checked) =>
-                      onToggleStatus(user.id, checked)
-                    }
+                    onCheckedChange={(checked) => onToggleStatus(user.id, checked)}
                   />
                 </div>
               </TableCell>

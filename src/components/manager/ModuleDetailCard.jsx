@@ -46,7 +46,7 @@ export function ModuleDetailCard({ data, onToggleActive }) {
           <Badge className="px-3 py-1 bg-gray-700">{data.duration}</Badge>
         </div>
       </CardHeader>
-
+    
       <CardContent className="space-y-6">
         {/* TOP INFO ROW */}
         <div className="flex items-center gap-4 flex-wrap text-sm text-gray-600">

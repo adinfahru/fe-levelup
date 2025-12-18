@@ -164,22 +164,28 @@ export default function ModuleFormEdit({ moduleId }) {
       // Navigate back to module detail
       navigate({ to: '/manager/module/detail', search: { id: moduleId } });
     } catch (err) {
-      setError(err.message);
-
       // Parse error message for better UX
-      let errorMessage = err.message;
+      let errorMessage = err.message || 'An unknown error occurred';
 
       if (
         errorMessage.includes('ongoing enrollments') ||
-        errorMessage.includes('ongoing enrollment')
+        errorMessage.includes('ongoing enrollment') ||
+        errorMessage.includes('active enrollments') ||
+        errorMessage.includes('active enrollment')
       ) {
         errorMessage =
-          `❌ Cannot add items to this module\n\n` +
+          `❌ Cannot modify module\n\n` +
           `This module currently has active enrollments.\n\n` +
-          `Please wait until all enrollments are completed or paused before adding new items.\n\n` +
+          `Please wait until all enrollments are completed or paused before making changes.\n\n` +
           `Backend error: ${err.message}`;
+      } else if (errorMessage.includes('Error 400') || errorMessage.trim() === '') {
+        errorMessage =
+          `❌ Update failed\n\n` +
+          `This might be due to active enrollments or invalid data.\n\n` +
+          `Please check if there are active users enrolled in this module and try again later.\n\n`;
       }
 
+      setError(errorMessage);
       alert(errorMessage);
     } finally {
       setSubmitting(false);

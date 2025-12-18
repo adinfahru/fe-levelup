@@ -1,95 +1,68 @@
+import { apiFetch, getHeaders } from '@/lib/api';
+
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://localhost:7118/api/v1';
 
-const handleResponse = async (response) => {
-  if (!response.ok) {
-    const error = await response.json().catch(() => ({}));
-    console.error('API Error Full Details:', error); // Debug log
+export const usersAPI = {
+  // Return both items and total so frontend can rely on server total
+  // params may include { page, limit, search, role }
+  // accept optional `signal` for request cancellation
+  getAll: async (params = {}) => {
+    const { signal, ...rest } = params;
+    const queryParams = new URLSearchParams();
+    Object.entries(rest).forEach(([k, v]) => {
+      if (v === undefined || v === null || v === '') return;
+      queryParams.append(k, String(v));
+    });
+    const url = `${API_BASE_URL}/users${queryParams.toString() ? `?${queryParams}` : ''}`;
 
-    // Extract validation errors if they exist
-    let errorMessage =
-      error.message || error.title || `Error ${response.status}: ${response.statusText}`;
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: getHeaders(),
+      signal,
+    });
 
-    if (error.errors && typeof error.errors === 'object') {
-      // .NET API validation errors format: { errors: { FieldName: ["error1", "error2"] } }
-      const fieldErrors = Object.entries(error.errors)
-        .map(
-          ([field, messages]) =>
-            `${field}: ${Array.isArray(messages) ? messages.join(', ') : messages}`
-        )
-        .join('; ');
-
-      if (fieldErrors) {
-        errorMessage = `Validation failed: ${fieldErrors}`;
-      }
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({}));
+      const message = err.message || `Error ${response.status}`;
+      throw new Error(message);
     }
 
-    throw new Error(errorMessage);
-  }
-  const result = await response.json();
-  // Backend returns { status, message, data }
-  return result.data || result;
-};
+    const result = await response.json();
 
-const getHeaders = () => {
-  const token = localStorage.getItem('token');
-  const headers = {
-    'Content-Type': 'application/json',
-  };
+    // Expecting { status, message, data: User[], total }
+    const items = result.data ?? result.items ?? (result.data && result.data.items) ?? [];
+    const total = result.total ?? result.count ?? (Array.isArray(items) ? items.length : 0);
 
-  if (token) {
-    headers.Authorization = `Bearer ${token}`;
-  }
-
-  return headers;
-};
-
-export const usersAPI = {
-  getAll: async (params = {}) => {
-    const queryParams = new URLSearchParams(params);
-    const response = await fetch(`${API_BASE_URL}/users?${queryParams}`, {
-      headers: getHeaders(),
-    });
-    return handleResponse(response);
+    return { items, total };
   },
 
   getById: async (id) => {
-    const response = await fetch(`${API_BASE_URL}/users/${id}`, {
-      headers: getHeaders(),
-    });
-    return handleResponse(response);
+    return apiFetch(`/users/${id}`);
   },
 
   create: async (userData) => {
-    const response = await fetch(`${API_BASE_URL}/users`, {
+    return apiFetch('/users', {
       method: 'POST',
-      headers: getHeaders(),
       body: JSON.stringify(userData),
     });
-    return handleResponse(response);
   },
 
   update: async (id, userData) => {
-    const response = await fetch(`${API_BASE_URL}/users/${id}`, {
+    return apiFetch(`/users/${id}`, {
       method: 'PUT',
-      headers: getHeaders(),
       body: JSON.stringify(userData),
     });
-    return handleResponse(response);
   },
 
   delete: async (id) => {
-    const response = await fetch(`${API_BASE_URL}/users/${id}`, {
+    return apiFetch(`/users/${id}`, {
       method: 'DELETE',
-      headers: getHeaders(),
     });
-    return handleResponse(response);
   },
 
   activate: async (id) => {
-    const response = await fetch(`${API_BASE_URL}/users/${id}/activate`, {
+    return apiFetch(`/users/${id}/activate`, {
       method: 'PUT',
-      headers: getHeaders(),
     });
-    return handleResponse(response);
   },
 };

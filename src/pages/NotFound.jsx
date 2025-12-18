@@ -24,7 +24,7 @@ export default function NotFound() {
       : role === 'Manager'
         ? '/manager/dashboard'
         : role === 'Employee'
-          ? '/employee/enrollments'
+          ? '/employee/dashboard'
           : '/';
 
   return (

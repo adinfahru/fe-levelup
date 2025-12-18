@@ -12,7 +12,10 @@ import {
 } from '@/components/ui/sidebar';
 
 export default function AppSidebar({ title, items, onLogout }) {
-  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const pathname = useRouterState({
+    select: (s) => s.location.pathname,
+  });
+
   const navigate = useNavigate();
 
   const handleLogout = () => {
@@ -21,32 +24,43 @@ export default function AppSidebar({ title, items, onLogout }) {
     navigate({ to: '/login' });
   };
 
+  const isItemActive = (item) => {
+    if (item.activePaths) {
+      return item.activePaths.some((path) => pathname === path || pathname.startsWith(path + '/'));
+    }
+
+    return pathname === item.to || pathname.startsWith(item.to + '/');
+  };
+
   return (
     <Sidebar className="bg-indigo-950 text-indigo-100 border-r border-indigo-900">
-      <SidebarContent className="bg-indigo-950 text-indigo-100 flex flex-col h-full">
+      <SidebarContent className="flex flex-col h-full">
+        {/* MAIN MENU */}
         <SidebarGroup className="flex-1">
-          <SidebarGroupLabel className="text-indigo-200 text-lg font-semibold p-4 mb-4">
+          <SidebarGroupLabel className="text-indigo-200 text-lg font-semibold px-4 py-3 mb-3">
             {title}
           </SidebarGroupLabel>
 
           <SidebarGroupContent>
             <SidebarMenu>
               {items.map((item) => {
-                const isActive = pathname.startsWith(item.to);
+                const active = isItemActive(item);
 
                 return (
-                  <SidebarMenuItem key={item.title}>
+                  <SidebarMenuItem key={item.to}>
                     <SidebarMenuButton
                       asChild
-                      className={`flex items-center gap-3 px-3 py-2 rounded-lg
+                      className={`
+                        flex items-center gap-3 px-3 py-2 rounded-lg transition
                         ${
-                          isActive
+                          active
                             ? 'bg-indigo-900 border-l-4 border-indigo-400 text-white'
                             : 'hover:bg-indigo-900/40 text-indigo-200'
-                        }`}
+                        }
+                      `}
                     >
                       <Link to={item.to}>
-                        <item.icon className="w-5 h-5" />
+                        <item.icon className="w-5 h-5 shrink-0" />
                         <span>{item.title}</span>
                       </Link>
                     </SidebarMenuButton>
@@ -57,9 +71,10 @@ export default function AppSidebar({ title, items, onLogout }) {
           </SidebarGroupContent>
         </SidebarGroup>
 
+        {/* LOGOUT */}
         {onLogout && (
           <SidebarGroup>
-            <SidebarGroupContent className="mt-auto">
+            <SidebarGroupContent className="px-2 pb-3">
               <SidebarMenu>
                 <SidebarMenuItem>
                   <SidebarMenuButton
