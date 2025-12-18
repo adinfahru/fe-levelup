@@ -4,6 +4,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Eye, EyeOff } from 'lucide-react';
 
 export default function Login() {
   const { login } = useAuth();
@@ -13,6 +14,7 @@ export default function Login() {
   });
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleChange = (e) => {
     setFormData({
@@ -67,7 +69,7 @@ export default function Login() {
                 id="email"
                 name="email"
                 type="email"
-                placeholder="your.email@example.com"
+                placeholder="Enter your email"
                 value={formData.email}
                 onChange={handleChange}
                 disabled={isLoading}
@@ -77,16 +79,28 @@ export default function Login() {
 
             <div className="space-y-2">
               <Label htmlFor="password">Password</Label>
-              <Input
-                id="password"
-                name="password"
-                type="password"
-                placeholder="Enter your password"
-                value={formData.password}
-                onChange={handleChange}
-                disabled={isLoading}
-                className="w-full"
-              />
+
+              <div className="relative">
+                <Input
+                  id="password"
+                  name="password"
+                  type={showPassword ? 'text' : 'password'}
+                  placeholder="Enter your password"
+                  value={formData.password}
+                  onChange={handleChange}
+                  disabled={isLoading}
+                  className="w-full pr-10"
+                />
+
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((v) => !v)}
+                  className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-500 hover:text-gray-700"
+                  tabIndex={-1}
+                >
+                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
+              </div>
             </div>
 
             <Button
@@ -116,7 +130,6 @@ export default function Login() {
             <p>Password: Manager123!</p>
             <p>Employee: employee@levelup.com</p>
             <p>Password: Employee123!</p>
-            <p className="text-xs text-gray-500 mt-2">Password: (as per your backend)</p>
           </div>
         </div>
       </div>
