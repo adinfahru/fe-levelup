@@ -2,7 +2,7 @@ import { Card } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { enrollmentAPI } from '@/api/enrollment.api';
 import { useNavigate } from '@tanstack/react-router';
 
@@ -14,14 +14,21 @@ export default function ActiveSectionCard({ section, enrollmentId }) {
   const navigate = useNavigate();
 
   /**
-   * 🔐 LOCK RULE (PALING PENTING)
-   * Final submission → sekali submit → terkunci
-   * Dibuka lagi HANYA oleh manager (BE set isCompleted = false)
+   * 🔄 RESET FORM SETIAP GANTI SECTION
+   * Ini kunci utama masalah kamu
+   */
+  useEffect(() => {
+    setFeedback('');
+    setEvidenceUrl('');
+  }, [section.enrollmentItemId]); // ← GANTI SECTION = RESET
+
+  /**
+   * 🔐 LOCK RULE
    */
   const isLocked = section.isFinalSubmission && section.isCompleted;
 
   const handleSubmit = async () => {
-    if (isLocked) return; // hard stop
+    if (isLocked) return;
 
     setLoading(true);
     try {
@@ -31,7 +38,6 @@ export default function ActiveSectionCard({ section, enrollmentId }) {
         evidenceUrl,
       });
 
-      // reload state dari BE
       navigate({ to: '/employee/enrollments', replace: true });
     } catch (err) {
       alert(err.message);
@@ -44,8 +50,12 @@ export default function ActiveSectionCard({ section, enrollmentId }) {
     <Card className="bg-white border shadow-sm rounded-2xl p-8 space-y-8">
       {/* TITLE */}
       <div className="space-y-1">
-        <h4 className="text-lg font-semibold text-gray-900">{section.moduleItemTitle}</h4>
-        <p className="text-sm text-gray-500">{section.moduleItemDescription}</p>
+        <h4 className="text-lg font-semibold text-gray-900">
+          {section.moduleItemTitle}
+        </h4>
+        <p className="text-sm text-gray-500">
+          {section.moduleItemDescription}
+        </p>
       </div>
 
       {/* RESOURCE */}
@@ -71,9 +81,10 @@ export default function ActiveSectionCard({ section, enrollmentId }) {
 
       {/* FORM */}
       <div className="space-y-5">
-        {/* EVIDENCE */}
         <div className="space-y-1.5">
-          <label className="text-sm font-medium text-gray-700">Evidence URL</label>
+          <label className="text-sm font-medium text-gray-700">
+            Evidence URL
+          </label>
           <Input
             className="text-sm"
             value={evidenceUrl}
@@ -82,9 +93,10 @@ export default function ActiveSectionCard({ section, enrollmentId }) {
           />
         </div>
 
-        {/* DAILY REPORT */}
         <div className="space-y-1.5">
-          <label className="text-sm font-medium text-gray-700">Daily Report</label>
+          <label className="text-sm font-medium text-gray-700">
+            Daily Report
+          </label>
           <Textarea
             className="min-h-[120px] text-sm"
             value={feedback}
@@ -95,19 +107,17 @@ export default function ActiveSectionCard({ section, enrollmentId }) {
       </div>
 
       {/* ACTION */}
-      <div className="pt-2">
-        <Button
-          onClick={handleSubmit}
-          disabled={isLocked || loading || !feedback || !evidenceUrl}
-          className="px-6"
-        >
-          {isLocked
-            ? 'Waiting for Review'
-            : loading
-              ? 'Submitting...'
-              : 'Submit & Complete Section'}
-        </Button>
-      </div>
+      <Button
+        onClick={handleSubmit}
+        disabled={isLocked || loading || !feedback || !evidenceUrl}
+        className="px-6"
+      >
+        {isLocked
+          ? 'Waiting for Review'
+          : loading
+          ? 'Submitting...'
+          : 'Submit & Complete Section'}
+      </Button>
     </Card>
   );
 }
