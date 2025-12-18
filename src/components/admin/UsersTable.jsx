@@ -40,20 +40,24 @@ export default function UsersTable({ positions }) {
   // Client-side controls (server-backed search/filter)
   const [search, setSearch] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
-  const [roleFilter, setRoleFilter] = useState('all');
+  const [roleFilter, setRoleFilter] = useState('');
+  const [statusFilter, setStatusFilter] = useState('');
 
   // Server-driven pagination state
   const [page, setPage] = useState(1);
   const limit = 10;
 
   const { data, isLoading, isFetching } = useQuery({
-    queryKey: ['users', page, debouncedSearch, roleFilter],
+    queryKey: ['users', page, debouncedSearch, roleFilter, statusFilter],
     queryFn: ({ signal }) =>
       usersAPI.getAll({
         page,
         limit,
         search: debouncedSearch,
-        role: roleFilter === 'all' ? undefined : roleFilter,
+        role: roleFilter && roleFilter !== 'all' ? roleFilter : undefined,
+        // map statusFilter to isActive param expected by backend
+        isActive:
+          statusFilter === 'active' ? true : statusFilter === 'inactive' ? false : undefined,
         signal,
       }),
     keepPreviousData: true,
@@ -89,34 +93,62 @@ export default function UsersTable({ positions }) {
   return (
     <div className="space-y-4 p-4">
       {/* Search + Filter */}
-      <div className="flex gap-3">
-        <Input
-          placeholder="Search user..."
-          value={search}
-          onChange={(e) => {
-            setSearch(e.target.value);
-            if (page !== 1) setPage(1);
-          }}
-          className="max-w-xs"
-        />
+      <div className="flex gap-5">
+        <div className="flex flex-col">
+          <span className="text-sm font-medium mb-1">Search</span>
+          <Input
+            placeholder="Search user..."
+            value={search}
+            onChange={(e) => {
+              setSearch(e.target.value);
+              if (page !== 1) setPage(1);
+            }}
+            className="max-w-xs"
+          />
+        </div>
 
-        <Select
-          value={roleFilter}
-          onValueChange={(val) => {
-            setRoleFilter(val);
-            if (page !== 1) setPage(1);
-          }}
-        >
-          <SelectTrigger className="w-32">
-            <SelectValue placeholder="Role" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All</SelectItem>
-            <SelectItem value="Admin">Admin</SelectItem>
-            <SelectItem value="Manager">Manager</SelectItem>
-            <SelectItem value="Employee">Employee</SelectItem>
-          </SelectContent>
-        </Select>
+        <div className="flex gap-5">
+          <div className="flex flex-col">
+            <span className="text-sm font-medium mb-1">Role</span>
+            <Select
+              value={roleFilter}
+              onValueChange={(val) => {
+                setRoleFilter(val);
+                if (page !== 1) setPage(1);
+              }}
+            >
+              <SelectTrigger className="w-32">
+                <SelectValue placeholder="Role" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All</SelectItem>
+                <SelectItem value="Admin">Admin</SelectItem>
+                <SelectItem value="Manager">Manager</SelectItem>
+                <SelectItem value="Employee">Employee</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="flex flex-col">
+            <span className="text-sm font-medium mb-1">Status</span>
+            <Select
+              value={statusFilter}
+              onValueChange={(val) => {
+                setStatusFilter(val);
+                if (page !== 1) setPage(1);
+              }}
+            >
+              <SelectTrigger className="w-36">
+                <SelectValue placeholder="Status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All</SelectItem>
+                <SelectItem value="active">Active</SelectItem>
+                <SelectItem value="inactive">Inactive</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
       </div>
 
       {/* Table */}

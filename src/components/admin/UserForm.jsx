@@ -206,7 +206,7 @@ export default function UserForm({ user, onSuccess, onCancel, positions }) {
         <Input
           id="password"
           name="password"
-          type="password"
+          type="text"
           value={formData.password || ''}
           onChange={handleChange}
           placeholder={
