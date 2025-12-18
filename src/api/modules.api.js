@@ -58,7 +58,6 @@ export const modulesAPI = {
   deleteItem: async (moduleId, itemId) => {
     return apiFetch(`/modules/${moduleId}/items/${itemId}`, {
       method: 'DELETE',
-      headers: getHeaders(),
     });
   },
 
