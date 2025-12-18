@@ -6,7 +6,7 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://localhost:711
 const handleResponse = async (response) => {
   if (!response.ok) {
     const error = await response.json().catch(() => ({}));
-    throw new Error(error.message || 'An error occurred');
+    throw new Error(error.Message || error.message || 'An error occurred');
   }
   return response.json();
 };
@@ -28,5 +28,23 @@ export const authAPI = {
       method: 'PUT',
       body: JSON.stringify(data),
     });
+  },
+
+  requestPasswordReset: async (data) => {
+    const response = await fetch(`${API_BASE_URL}/auth/password/request`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+    return handleResponse(response);
+  },
+
+  confirmPasswordReset: async (data) => {
+    const response = await fetch(`${API_BASE_URL}/auth/password/confirm`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+    return handleResponse(response);
   },
 };

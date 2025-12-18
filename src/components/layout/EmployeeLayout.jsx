@@ -1,6 +1,16 @@
 import { Outlet } from '@tanstack/react-router';
-import { SidebarProvider, SidebarTrigger, SidebarInset } from '@/components/ui/sidebar';
-import { LayoutDashboard, BookOpenText, LibraryBig, Menu } from 'lucide-react';
+import {
+  SidebarProvider,
+  SidebarTrigger,
+  SidebarInset,
+} from '@/components/ui/sidebar';
+import {
+  LayoutDashboard,
+  BookOpenText,
+  LibraryBig,
+  User,
+  Menu,
+} from 'lucide-react';
 import AppSidebar from '@/components/ui/sidebar/AppSidebar';
 import { useAuth } from '@/hooks/useAuth';
 
@@ -23,6 +33,12 @@ const employeeItems = [
     icon: LibraryBig,
     activePaths: ['/employee/history'],
   },
+  {
+    title: 'Profile',
+    to: '/employee/profile',
+    icon: User,
+    activePaths: ['/employee/profile'],
+  },
 ];
 
 export default function EmployeeLayout() {
@@ -32,17 +48,23 @@ export default function EmployeeLayout() {
     <SidebarProvider>
       <div className="flex min-h-screen w-full">
         {/* SIDEBAR */}
-        <AppSidebar title="Employee Panel" items={employeeItems} onLogout={logout} />
+        <AppSidebar
+          title="Employee Panel"
+          items={employeeItems}
+          onLogout={logout}
+        />
 
         {/* INSET CONTENT (WAJIB) */}
-        <SidebarInset className="flex flex-col flex-1">
+        <SidebarInset className="flex flex-1 flex-col">
           {/* TOP BAR — MOBILE */}
           <header className="sticky top-0 z-30 flex items-center gap-3 border-b bg-white px-4 py-3 md:hidden">
             <SidebarTrigger className="rounded-md p-2 hover:bg-gray-100">
               <Menu className="h-6 w-6 text-gray-700" />
             </SidebarTrigger>
 
-            <span className="text-sm font-semibold text-gray-800">Employee Panel</span>
+            <span className="text-sm font-semibold text-gray-800">
+              Employee Panel
+            </span>
           </header>
 
           {/* PAGE CONTENT */}
