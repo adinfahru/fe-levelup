@@ -9,16 +9,12 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-  useSidebar,
 } from '@/components/ui/sidebar';
 
 export default function AppSidebar({ title, items, onLogout }) {
   const pathname = useRouterState({
     select: (s) => s.location.pathname,
   });
-
-  const { setOpen } = useSidebar();
-
   const navigate = useNavigate();
 
   const handleLogout = () => {
@@ -27,23 +23,19 @@ export default function AppSidebar({ title, items, onLogout }) {
     navigate({ to: '/login' });
   };
 
-  const isItemActive = (item) => pathname === item.to || pathname.startsWith(item.to + '/');
+  const isItemActive = (item) => {
+    if (item.activePaths && item.activePaths.length > 0) {
+      return item.activePaths.some((path) => pathname === path || pathname.startsWith(path + '/'));
+    }
+
+    return pathname === item.to || pathname.startsWith(item.to + '/');
+  };
 
   return (
-    <Sidebar
-      collapsible="offcanvas"
-      className="
-    bg-indigo-950
-    text-indigo-100
-    border-r
-    border-indigo-900
-    data-[state=open]:bg-indigo-950
-  "
-    >
-      <SidebarContent className="flex h-full flex-col bg-indigo-950">
-        {/* MENU */}
+    <Sidebar className="bg-indigo-950 text-indigo-100 border-r border-indigo-900">
+      <SidebarContent className="bg-indigo-950 flex flex-col h-full">
         <SidebarGroup className="flex-1">
-          <SidebarGroupLabel className="px-4 py-4 text-lg font-semibold text-indigo-200">
+          <SidebarGroupLabel className="text-indigo-200 text-lg font-semibold p-4 mb-4">
             {title}
           </SidebarGroupLabel>
 
@@ -53,18 +45,18 @@ export default function AppSidebar({ title, items, onLogout }) {
                 const active = isItemActive(item);
 
                 return (
-                  <SidebarMenuItem key={item.to}>
+                  <SidebarMenuItem key={item.title}>
                     <SidebarMenuButton
                       asChild
-                      className={`flex items-center gap-3 rounded-lg px-3 py-2 transition
+                      className={`flex items-center gap-3 px-3 py-2 rounded-lg transition
                         ${
                           active
-                            ? 'bg-indigo-900 text-white'
-                            : 'text-indigo-200 hover:bg-indigo-900/50'
+                            ? 'bg-indigo-900 border-l-4 border-indigo-400 text-white'
+                            : 'hover:bg-indigo-900/40 text-indigo-200'
                         }`}
                     >
-                      <Link to={item.to} onClick={() => setOpen(false)}>
-                        <item.icon className="h-5 w-5 shrink-0" />
+                      <Link to={item.to}>
+                        <item.icon className="w-5 h-5" />
                         <span>{item.title}</span>
                       </Link>
                     </SidebarMenuButton>
@@ -75,22 +67,23 @@ export default function AppSidebar({ title, items, onLogout }) {
           </SidebarGroupContent>
         </SidebarGroup>
 
-        {/* LOGOUT */}
-        <SidebarGroup>
-          <SidebarGroupContent className="px-3 pb-4">
-            <SidebarMenu>
-              <SidebarMenuItem>
-                <SidebarMenuButton
-                  onClick={handleLogout}
-                  className="flex items-center gap-3 rounded-lg px-3 py-2 text-red-400 hover:bg-red-500/20"
-                >
-                  <LogOut className="h-5 w-5" />
-                  <span>Logout</span>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
+        {onLogout && (
+          <SidebarGroup>
+            <SidebarGroupContent className="mt-auto">
+              <SidebarMenu>
+                <SidebarMenuItem>
+                  <SidebarMenuButton
+                    onClick={handleLogout}
+                    className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-red-600/40 text-red-400"
+                  >
+                    <LogOut className="w-5 h-5" />
+                    <span>Logout</span>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        )}
       </SidebarContent>
     </Sidebar>
   );

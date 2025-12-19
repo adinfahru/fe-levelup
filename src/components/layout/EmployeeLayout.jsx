@@ -1,43 +1,33 @@
 import { Outlet } from '@tanstack/react-router';
-import {
-  SidebarProvider,
-  SidebarTrigger,
-  SidebarInset,
-} from '@/components/ui/sidebar';
-import {
-  LayoutDashboard,
-  BookOpenText,
-  LibraryBig,
-  User,
-  Menu,
-} from 'lucide-react';
+import { LayoutDashboard, BookOpenText, LibraryBig, User } from 'lucide-react';
 import AppSidebar from '@/components/ui/sidebar/AppSidebar';
 import { useAuth } from '@/hooks/useAuth';
+import { SidebarProvider } from '@/components/ui/sidebar';
 
 const employeeItems = [
   {
     title: 'Dashboard',
     to: '/employee/dashboard',
     icon: LayoutDashboard,
-    activePaths: ['/employee/dashboard', '/employee/module'],
+    activePaths: [
+      '/employee/dashboard',
+      '/employee/module', 
+    ],
   },
   {
     title: 'Enrollment',
     to: '/employee/enrollments',
     icon: BookOpenText,
-    activePaths: ['/employee/enrollments'],
   },
   {
     title: 'History',
     to: '/employee/history',
     icon: LibraryBig,
-    activePaths: ['/employee/history'],
   },
   {
     title: 'Profile',
     to: '/employee/profile',
     icon: User,
-    activePaths: ['/employee/profile'],
   },
 ];
 
@@ -46,32 +36,11 @@ export default function EmployeeLayout() {
 
   return (
     <SidebarProvider>
-      <div className="flex min-h-screen w-full">
-        {/* SIDEBAR */}
-        <AppSidebar
-          title="Employee Panel"
-          items={employeeItems}
-          onLogout={logout}
-        />
-
-        {/* INSET CONTENT (WAJIB) */}
-        <SidebarInset className="flex flex-1 flex-col">
-          {/* TOP BAR — MOBILE */}
-          <header className="sticky top-0 z-30 flex items-center gap-3 border-b bg-white px-4 py-3 md:hidden">
-            <SidebarTrigger className="rounded-md p-2 hover:bg-gray-100">
-              <Menu className="h-6 w-6 text-gray-700" />
-            </SidebarTrigger>
-
-            <span className="text-sm font-semibold text-gray-800">
-              Employee Panel
-            </span>
-          </header>
-
-          {/* PAGE CONTENT */}
-          <main className="flex-1 overflow-y-auto p-6">
-            <Outlet />
-          </main>
-        </SidebarInset>
+      <div className="flex h-screen w-full">
+        <AppSidebar title="Employee Panel" items={employeeItems} onLogout={logout} />
+        <main className="flex-1 overflow-y-auto p-6">
+          <Outlet />
+        </main>
       </div>
     </SidebarProvider>
   );
