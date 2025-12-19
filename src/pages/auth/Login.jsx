@@ -119,19 +119,6 @@ export default function Login() {
             </Link>
           </div>
         </div>
-
-        {/* Demo Credentials Info */}
-        <div className="mt-6 bg-white rounded-lg shadow p-4 text-sm">
-          <p className="font-semibold text-gray-700 mb-2">Demo Credentials:</p>
-          <div className="space-y-1 text-gray-600">
-            <p>Admin: admin@levelup.com</p>
-            <p>Password: Admin123!</p>
-            <p>Manager: manager@levelup.com</p>
-            <p>Password: Manager123!</p>
-            <p>Employee: employee@levelup.com</p>
-            <p>Password: Employee123!</p>
-          </div>
-        </div>
       </div>
     </div>
   );
