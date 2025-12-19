@@ -203,6 +203,15 @@ export default function ProfileEmployee() {
                   <Button type="submit" disabled={confirmMutation.isPending}>
                     {confirmMutation.isPending ? 'Changing...' : 'Change Password'}
                   </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => requestMutation.mutate({ email })}
+                    disabled={requestMutation.isPending || countdown > 0}
+                    className="mt-2"
+                  >
+                    {requestMutation.isPending ? 'Resending...' : 'Resend OTP'}
+                  </Button>
                 </form>
               )}
             </DialogContent>
