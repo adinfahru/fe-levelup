@@ -6,15 +6,20 @@ import { useAuth } from '@/hooks/useAuth';
 
 const managerItems = [
   { title: 'Dashboard', to: '/manager/dashboard', icon: LayoutDashboard },
-  { title: 'Modules', to: '/manager/modules', icon: BookOpen, activePaths: [
-      '/manager/module',
-      '/manager/modules',
-    ],},
+  {
+    title: 'Modules',
+    to: '/manager/modules',
+    icon: BookOpen,
+    activePaths: ['/manager/module', '/manager/modules'],
+  },
   { title: 'Employees', to: '/manager/employees', icon: Users },
-  { title: 'Submissions', to: '/manager/submissions', icon: FileCheck, activePaths: [
-      '/manager/submission',
-      '/manager/submissions', 
-    ] },
+  {
+    title: 'Submissions',
+    to: '/manager/submissions',
+    icon: FileCheck,
+    activePaths: ['/manager/submission', '/manager/submissions'],
+  },
+  { title: 'Profile', to: '/manager/profile', icon: Users },
 ];
 
 export default function ManagerLayout() {
