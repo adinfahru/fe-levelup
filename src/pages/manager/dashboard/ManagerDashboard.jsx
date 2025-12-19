@@ -12,12 +12,6 @@ export default function ManagerDashboard() {
     queryFn: dashboardAPI.getManagerDashboard,
   });
 
-  // Fetch enrollments
-  const { data: enrollments = [] } = useQuery({
-    queryKey: ['manager-enrollments'],
-    queryFn: dashboardAPI.getEnrollmentsByManager,
-  });
-
   // Fetch submissions
   const { data: submissions = [] } = useQuery({
     queryKey: ['submissions'],
@@ -37,11 +31,7 @@ export default function ManagerDashboard() {
       />
 
       {/* ==== Charts ==== */}
-      <DashboardCharts
-        dashboardData={dashboardData}
-        enrollments={enrollments}
-        submissions={submissions}
-      />
+      <DashboardCharts dashboardData={dashboardData} submissions={submissions} />
     </div>
   );
 }
