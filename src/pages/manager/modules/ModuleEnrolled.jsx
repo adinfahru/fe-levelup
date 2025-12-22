@@ -32,7 +32,7 @@ export default function ModuleEnrolled() {
 
   if (!module) {
     return (
-      <div className="space-y-6 p-4">
+      <div className="space-y-6 p-6">
         <p className="text-gray-500">Module not found</p>
       </div>
     );
@@ -49,14 +49,13 @@ export default function ModuleEnrolled() {
   });
 
   return (
-    <div className="space-y-6 p-4">
+    <div className="space-y-6 p-6">
       <Breadcrumbs
         items={[
           { label: 'Modules', to: '/manager/modules' },
           {
             label: module?.title || 'Module',
-            to: '/manager/module/detail',
-            search: { id: moduleId },
+            to: '/manager/module/detail' + `?id=${moduleId}`,
           },
           { label: 'Enrolled Users' },
         ]}
