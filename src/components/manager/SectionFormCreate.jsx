@@ -2,71 +2,142 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Plus, Trash2 } from "lucide-react";
 
-export default function SectionFormCreate({ sections, onSectionsChange }) {
-  const handleSectionChange = (index, field, value) => {
-    const newSections = [...sections];
-    newSections[index][field] = value;
-    onSectionsChange(newSections);
-  };
-
+export default function SectionFormCreate({
+  sections = [],
+  onSectionsChange = () => {},
+}) {
   const addSection = () => {
-    onSectionsChange([...sections, { title: "", description: "", url: "" }]);
+    onSectionsChange([
+      ...sections,
+      { title: "", description: "", url: "" },
+    ]);
   };
 
-  const removeSection = (index) => {
-    onSectionsChange(sections.filter((_, i) => i !== index));
+  const updateSection = (i, key, val) => {
+    const copy = [...sections];
+    copy[i][key] = val;
+    onSectionsChange(copy);
+  };
+
+  const removeSection = (i) => {
+    onSectionsChange(sections.filter((_, idx) => idx !== i));
   };
 
   return (
-    <div className="space-y-4">
-      <div className="flex justify-between items-center">
-        <Label>Section Learning</Label>
-        <Button type="button" onClick={addSection}>
-          Tambah Section
-        </Button>
-      </div>
-
-      {sections.map((section, index) => (
-        <div key={index} className="border border-gray-200 rounded-md p-4 space-y-3">
-          <div className="flex justify-between items-center">
-            <span className="font-medium">Section {index + 1}</span>
-            {sections.length > 1 && (
-              <Button type="button" variant="destructive" size="sm" onClick={() => removeSection(index)}>
-                Hapus
-              </Button>
-            )}
-          </div>
-
-          <div>
-            <Label htmlFor={`sectionTitle-${index}`}>Judul Section</Label>
-            <Input
-              id={`sectionTitle-${index}`}
-              placeholder="Judul section"
-              value={section.title}
-              onChange={(e) => handleSectionChange(index, "title", e.target.value)}
-            />
-          </div>
-          <div>
-            <Label htmlFor={`sectionDesc-${index}`}>Deskripsi Section</Label>
-            <Textarea
-              id={`sectionDesc-${index}`}
-              placeholder="Deskripsi section"
-              value={section.description}
-              onChange={(e) => handleSectionChange(index, "description", e.target.value)}
-            />
-          </div>
-          <div>
-            <Label htmlFor={`sectionUrl-${index}`}>URL Materi (optional)</Label>
-            <Input
-              id={`sectionUrl-${index}`}
-              placeholder="URL materi"
-              value={section.url}
-              onChange={(e) => handleSectionChange(index, "url", e.target.value)}
-            />
-          </div>
+    <Card
+      className="
+        bg-white/15 backdrop-blur-xl
+        border border-white/30
+        rounded-2xl
+      "
+    >
+      <CardHeader className="flex flex-row items-center justify-between">
+        <div>
+          <CardTitle className="text-lg">
+            Learning Sections
+          </CardTitle>
+          <p className="text-sm text-gray-600">
+            Step-by-step learning flow
+          </p>
         </div>
-      ))}
-    </div>
+
+        <Button
+          type="button"
+          onClick={addSection}
+          className="bg-indigo-600 hover:bg-indigo-700 text-white flex gap-2"
+        >
+          <Plus className="w-4 h-4" />
+          Add Section
+        </Button>
+      </CardHeader>
+
+      <CardContent className="space-y-6">
+        {sections.map((section, index) => {
+          const isLast = index === sections.length - 1;
+
+          return (
+            <div key={index} className="flex gap-4">
+              <div className="flex flex-col items-center">
+                <div className="h-8 w-8 rounded-full bg-indigo-600 text-white flex items-center justify-center text-sm font-semibold">
+                  {index + 1}
+                </div>
+                {!isLast && (
+                  <div className="flex-1 w-px bg-indigo-300 mt-1" />
+                )}
+              </div>
+
+              <div className="flex-1">
+                <Card className="bg-white/20 border border-white/30 rounded-xl shadow-sm">
+                  <CardHeader className="flex flex-row items-center justify-between py-3 px-4 bg-white/30 rounded-t-xl">
+                    <span className="font-medium text-gray-900">
+                      Section {index + 1}
+                    </span>
+
+                    {sections.length > 1 && (
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="destructive"
+                        onClick={() => removeSection(index)}
+                        className="flex gap-1"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                        Delete
+                      </Button>
+                    )}
+                  </CardHeader>
+
+                  <CardContent className="space-y-4 p-4">
+                    <div>
+                      <Label>Title *</Label>
+                      <Input
+                        value={section.title}
+                        onChange={(e) =>
+                          updateSection(index, "title", e.target.value)
+                        }
+                      />
+                    </div>
+
+                    <div>
+                      <Label>Description</Label>
+                      <Textarea
+                        value={section.description}
+                        onChange={(e) =>
+                          updateSection(index, "description", e.target.value)
+                        }
+                      />
+                    </div>
+
+                    <div>
+                      <Label>Material URL</Label>
+                      <Input
+                        value={section.url}
+                        onChange={(e) =>
+                          updateSection(index, "url", e.target.value)
+                        }
+                      />
+                    </div>
+
+                    {isLast && (
+                      <div className="text-xs text-indigo-700 font-medium bg-indigo-50 border border-indigo-200 rounded-md px-3 py-2">
+                        This section will be used as final submission
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </div>
+            </div>
+          );
+        })}
+      </CardContent>
+    </Card>
   );
 }
