@@ -1,48 +1,50 @@
-import { useState, useEffect } from 'react';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import SectionFormEdit from './SectionFormEdit';
-import { modulesAPI } from '@/api/modules.api';
-import { useNavigate } from '@tanstack/react-router';
+import { useState, useEffect } from "react";
+import { useNavigate } from "@tanstack/react-router";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import SectionFormEdit from "./SectionFormEdit";
+import { modulesAPI } from "@/api/modules.api";
 
 export default function ModuleFormEdit({ moduleId }) {
   const navigate = useNavigate();
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [submitting, setSubmitting] = useState(false);
 
-  const [moduleTitle, setModuleTitle] = useState('');
-  const [moduleDesc, setModuleDesc] = useState('');
-  const [estimatedDays, setEstimatedDays] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState(null);
+
+  const [moduleTitle, setModuleTitle] = useState("");
+  const [moduleDesc, setModuleDesc] = useState("");
+  const [estimatedDays, setEstimatedDays] = useState("");
   const [sections, setSections] = useState([]);
-  const [originalSectionCount, setOriginalSectionCount] = useState(0);
 
   useEffect(() => {
     const fetchModule = async () => {
       try {
-        setLoading(true);
         const data = await modulesAPI.getById(moduleId);
-        setModuleTitle(data.title || '');
-        setModuleDesc(data.description || '');
-        setEstimatedDays(data.estimatedDays || '');
 
-        // Transform items to sections format
-        const transformedSections = (data.items || [])
-          .sort((a, b) => (a.orderIndex || 0) - (b.orderIndex || 0))
+        setModuleTitle(data.title || "");
+        setModuleDesc(data.description || "");
+        setEstimatedDays(data.estimatedDays || "");
+
+        const transformed = (data.items || [])
+          .sort((a, b) => a.orderIndex - b.orderIndex)
           .map((item) => ({
             id: item.id,
-            title: item.title || '',
-            description: item.descriptions || '', // API uses "descriptions" (plural)
-            url: item.url || '',
-            orderIndex: item.orderIndex,
-            isFinalSubmission: item.isFinalSubmission || false,
+            title: item.title || "",
+            description: item.descriptions || "",
+            url: item.url || "",
+            isFinalSubmission: item.isFinalSubmission,
           }));
 
-        setSections(transformedSections);
-        setOriginalSectionCount(transformedSections.length);
+        setSections(transformed);
       } catch (err) {
         setError(err.message);
       } finally {
@@ -50,143 +52,51 @@ export default function ModuleFormEdit({ moduleId }) {
       }
     };
 
-    if (moduleId) {
-      fetchModule();
-    }
+    if (moduleId) fetchModule();
   }, [moduleId]);
-
-  const handleSectionsChange = (newSections) => {
-    setSections(newSections);
-  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    // Validation
-    if (!moduleTitle.trim() || moduleTitle.length > 200) {
-      alert('Module title is required and must be less than 200 characters');
-      return;
-    }
-
-    if (moduleDesc.length > 2000) {
-      alert('Description must be less than 2000 characters');
-      return;
-    }
-
-    const days = parseInt(estimatedDays);
-    if (!days || days < 1 || days > 365) {
-      alert('Estimated days must be between 1 and 365');
-      return;
-    }
-
-    // Check if items were added or deleted
-    const itemsChanged = sections.length !== originalSectionCount;
-    const hasNewItems = sections.some((s) => !s.id);
+    setSubmitting(true);
 
     try {
-      setSubmitting(true);
-      setError(null);
+      const days = parseInt(estimatedDays);
 
-      // Re-fetch latest module data to get current activeCount
-      // (activeCount might have changed since page load)
-      const latestModule = await modulesAPI.getById(moduleId);
-      const currentActiveCount = latestModule.activeCount || 0;
-
-      // If module has active enrollments, block add/delete items
-      if (currentActiveCount > 0 && (itemsChanged || hasNewItems)) {
-        alert(
-          `❌ Cannot add or delete items\n\n` +
-            `This module currently has ${currentActiveCount} active enrollment(s).\n\n` +
-            `You can only update existing items. Wait until all enrollments are completed or paused before adding/deleting items.`
-        );
-        setSubmitting(false);
-        return;
-      }
-
-      // 1. Update module basic info
-      const moduleData = {
+      await modulesAPI.update(moduleId, {
         title: moduleTitle.trim(),
         description: moduleDesc.trim(),
         estimatedDays: days,
-        isActive: false, // Keep as inactive when editing
-      };
+        isActive: false,
+      });
 
-      await modulesAPI.update(moduleId, moduleData);
-
-      // 2. Update/Add items
-      // Note: API uses "descriptions" (plural) not "description"
       for (let i = 0; i < sections.length; i++) {
-        const section = sections[i];
+        const s = sections[i];
 
-        if (section.id) {
-          // Update existing item
-          // Only include non-empty optional fields
-          const updateItemPayload = {
-            title: section.title,
+        if (s.id) {
+          await modulesAPI.updateItem(moduleId, s.id, {
+            title: s.title,
             isFinalSubmission: i === sections.length - 1,
-          };
-
-          // Only include descriptions and url if not empty
-          if (section.description && section.description.trim()) {
-            updateItemPayload.descriptions = section.description.trim();
-          }
-          if (section.url && section.url.trim()) {
-            updateItemPayload.url = section.url.trim();
-          }
-
-          console.log('Updating item payload:', updateItemPayload); // Debug
-          await modulesAPI.updateItem(moduleId, section.id, updateItemPayload);
+            ...(s.description && { descriptions: s.description }),
+            ...(s.url && { url: s.url }),
+          });
         } else {
-          // Add new item (only allowed if activeCount === 0)
-          // Remove empty optional fields for backend validation
-          const addItemPayload = {
-            title: section.title,
+          await modulesAPI.addItem(moduleId, {
+            title: s.title,
             orderIndex: i + 1,
             isFinalSubmission: i === sections.length - 1,
-          };
-
-          // Only include descriptions and url if not empty
-          if (section.description && section.description.trim()) {
-            addItemPayload.descriptions = section.description.trim();
-          }
-          if (section.url && section.url.trim()) {
-            addItemPayload.url = section.url.trim();
-          }
-
-          console.log('Adding item payload:', addItemPayload); // Debug
-          await modulesAPI.addItem(moduleId, addItemPayload);
+            ...(s.description && { descriptions: s.description }),
+            ...(s.url && { url: s.url }),
+          });
         }
       }
 
-      // 3. Delete removed items (compare with original)
-      // TODO: Implement delete logic if needed
-
-      // Navigate back to module detail
-      navigate({ to: '/manager/module/detail', search: { id: moduleId } });
+      navigate({
+        to: "/manager/module/detail",
+        search: { id: moduleId },
+      });
     } catch (err) {
-      // Parse error message for better UX
-      let errorMessage = err.message || 'An unknown error occurred';
-
-      if (
-        errorMessage.includes('ongoing enrollments') ||
-        errorMessage.includes('ongoing enrollment') ||
-        errorMessage.includes('active enrollments') ||
-        errorMessage.includes('active enrollment')
-      ) {
-        errorMessage =
-          `❌ Cannot modify module\n\n` +
-          `This module currently has active enrollments.\n\n` +
-          `Please wait until all enrollments are completed or paused before making changes.\n\n` +
-          `Backend error: ${err.message}`;
-      } else if (errorMessage.includes('Error 400') || errorMessage.trim() === '') {
-        errorMessage =
-          `❌ Update failed\n\n` +
-          `This might be due to active enrollments or invalid data.\n\n` +
-          `Please check if there are active users enrolled in this module and try again later.\n\n`;
-      }
-
-      setError(errorMessage);
-      alert(errorMessage);
+      setError(err.message);
+      alert(err.message);
     } finally {
       setSubmitting(false);
     }
@@ -194,9 +104,9 @@ export default function ModuleFormEdit({ moduleId }) {
 
   if (loading) {
     return (
-      <Card>
-        <CardContent className="p-8">
-          <p className="text-center text-gray-500">Loading module data...</p>
+      <Card className="bg-white border border-gray-200 rounded-2xl shadow-[-6px_8px_18px_rgba(15,23,42,0.15)]">
+        <CardContent className="p-8 text-center text-gray-500">
+          Loading module data...
         </CardContent>
       </Card>
     );
@@ -204,88 +114,95 @@ export default function ModuleFormEdit({ moduleId }) {
 
   if (error && !submitting) {
     return (
-      <Card>
-        <CardContent className="p-8">
-          <p className="text-center text-red-500">Error: {error}</p>
-          <Button onClick={() => navigate({ to: '/manager/modules' })} className="mt-4">
-            Back to Modules
-          </Button>
+      <Card className="bg-white border border-gray-200 rounded-2xl shadow-[-6px_8px_18px_rgba(15,23,42,0.15)]">
+        <CardContent className="p-8 text-center text-red-600">
+          {error}
         </CardContent>
       </Card>
     );
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Edit Module</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Module Info */}
-          <div className="space-y-4">
-            <div>
-              <Label htmlFor="moduleTitle">Module Title *</Label>
-              <Input
-                id="moduleTitle"
-                placeholder="Enter module title (max 200 characters)"
-                value={moduleTitle}
-                onChange={(e) => setModuleTitle(e.target.value)}
-                maxLength={200}
-                required
-              />
-            </div>
-            <div>
-              <Label htmlFor="moduleDesc">Module Description</Label>
-              <Textarea
-                id="moduleDesc"
-                placeholder="Enter module description (max 2000 characters)"
-                value={moduleDesc}
-                onChange={(e) => setModuleDesc(e.target.value)}
-                maxLength={2000}
-                rows={4}
-              />
-            </div>
-            <div>
-              <Label htmlFor="estimatedDays">Estimated Days *</Label>
-              <Input
-                id="estimatedDays"
-                type="number"
-                placeholder="Enter estimated days (1-365)"
-                value={estimatedDays}
-                onChange={(e) => setEstimatedDays(e.target.value)}
-                min={1}
-                max={365}
-                required
-              />
-            </div>
+    <form onSubmit={handleSubmit} className="space-y-6 max-w-5xl mx-auto">
+
+      {/* ===== MODULE INFO ===== */}
+      <Card
+        className="
+          bg-white
+          border border-gray-200
+          rounded-2xl
+          shadow-[-6px_8px_18px_rgba(15,23,42,0.15)]
+        "
+      >
+        <CardHeader className="pb-4">
+          <CardTitle className="text-lg font-semibold text-gray-900">
+            Module Information
+          </CardTitle>
+          <p className="text-sm text-gray-600">
+            Update basic module information
+          </p>
+        </CardHeader>
+
+        <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <Label>Module Title *</Label>
+            <Input
+              value={moduleTitle}
+              onChange={(e) => setModuleTitle(e.target.value)}
+              required
+            />
           </div>
 
-          {/* Section Form */}
-          <SectionFormEdit sections={sections} onSectionsChange={handleSectionsChange} />
-
-          {error && (
-            <div className="p-3 bg-red-50 border border-red-200 rounded text-red-600 text-sm">
-              {error}
-            </div>
-          )}
-
-          {/* Submit & Cancel */}
-          <div className="flex gap-3">
-            <Button type="submit" disabled={submitting}>
-              {submitting ? 'Updating...' : 'Update Module'}
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => navigate({ to: '/manager/module/detail', search: { id: moduleId } })}
-              disabled={submitting}
-            >
-              Cancel
-            </Button>
+          <div>
+            <Label>Estimated Days *</Label>
+            <Input
+              type="number"
+              value={estimatedDays}
+              onChange={(e) => setEstimatedDays(e.target.value)}
+              required
+            />
           </div>
-        </form>
-      </CardContent>
-    </Card>
+
+          <div className="md:col-span-2">
+            <Label>Description</Label>
+            <Textarea
+              rows={4}
+              value={moduleDesc}
+              onChange={(e) => setModuleDesc(e.target.value)}
+            />
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* ===== SECTIONS ===== */}
+      <SectionFormEdit
+        sections={sections}
+        onSectionsChange={setSections}
+      />
+
+      {/* ===== ACTIONS ===== */}
+      <div className="flex justify-end gap-3 pt-2">
+        <Button
+          type="submit"
+          disabled={submitting}
+          className="bg-emerald-600 hover:bg-emerald-700 text-white"
+        >
+          {submitting ? "Updating..." : "Update Module"}
+        </Button>
+
+        <Button
+          type="button"
+          variant="outline"
+          onClick={() =>
+            navigate({
+              to: "/manager/module/detail",
+              search: { id: moduleId },
+            })
+          }
+        >
+          Cancel
+        </Button>
+      </div>
+    </form>
   );
 }

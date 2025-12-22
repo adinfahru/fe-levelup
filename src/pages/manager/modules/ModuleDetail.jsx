@@ -11,7 +11,7 @@ export default function ModuleDetail() {
 
   if (!module) {
     return (
-      <div className="space-y-6 p-4">
+      <div className="space-y-6 p-6">
         <p className="text-gray-500">Loading module data...</p>
       </div>
     );
@@ -44,7 +44,7 @@ export default function ModuleDetail() {
   };
 
   return (
-    <div className="space-y-6 p-4">
+    <div className="space-y-6 p-6">
       <Breadcrumbs
         items={[{ label: 'Module', to: '/manager/modules' }, { label: module.title || 'Detail' }]}
       />

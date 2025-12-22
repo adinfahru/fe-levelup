@@ -6,32 +6,70 @@ import { dashboardAPI } from '@/api/dashboard.api';
 import { submissionAPI } from '@/api/submission.api';
 
 export default function ManagerDashboard() {
-  // Fetch dashboard stats
-  const { data: dashboardData = {} } = useQuery({
-    queryKey: ['manager-dashboard'],
+
+  const {
+    data: dashboardData,
+    isLoading: isDashboardLoading,
+    isError: isDashboardError,
+  } = useQuery({
+    queryKey: ['manager-dashboard', 'stats'],
     queryFn: dashboardAPI.getManagerDashboard,
   });
 
-  // Fetch submissions
-  const { data: submissions = [] } = useQuery({
-    queryKey: ['submissions'],
+  const {
+    data: submissions = [],
+    isLoading: isSubmissionsLoading,
+  } = useQuery({
+    queryKey: ['manager-dashboard', 'submissions'],
     queryFn: submissionAPI.getSubmissions,
   });
 
+  if (isDashboardError) {
+    return (
+      <div className="p-6 text-red-600">
+        Failed to load dashboard data
+      </div>
+    );
+  }
+
   return (
-    <div className="p-4">
-      <h2 className="text-2xl font-bold">Manager Dashboard</h2>
-      <p className="mb-4">Dashboard overview and statistics</p>
+    <div className="p-6 space-y-6">
+      <div>
+        <h2 className="text-2xl font-bold text-gray-900">
+          Manager Dashboard
+        </h2>
+        <p className="text-sm text-gray-600">
+          Dashboard overview and statistics
+        </p>
+      </div>
 
-      {/* ==== 3 Cards ==== */}
-      <DashboardStats
-        totalIdle={dashboardData.totalIdle || 0}
-        totalEnroll={dashboardData.totalEnroll || 0}
-        totalModules={dashboardData.totalModules || 0}
-      />
+      {isDashboardLoading ? (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {[1, 2, 3].map((i) => (
+            <div
+              key={i}
+              className="
+                h-32 rounded-2xl
+                bg-white/30 backdrop-blur
+                animate-pulse
+              "
+            />
+          ))}
+        </div>
+      ) : (
+        <DashboardStats
+          totalIdle={dashboardData?.totalIdle ?? 0}
+          totalEnroll={dashboardData?.totalEnroll ?? 0}
+          totalModules={dashboardData?.totalModules ?? 0}
+        />
+      )}
 
-      {/* ==== Charts ==== */}
-      <DashboardCharts dashboardData={dashboardData} submissions={submissions} />
+      {!isDashboardLoading && !isSubmissionsLoading && (
+        <DashboardCharts
+          dashboardData={dashboardData}
+          submissions={submissions}
+        />
+      )}
     </div>
   );
 }
