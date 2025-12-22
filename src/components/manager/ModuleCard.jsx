@@ -12,81 +12,45 @@ export function ModuleCard({ data }) {
     >
       <Card
         className={`
-          relative overflow-hidden rounded-2xl
-          backdrop-blur-xl
+          relative rounded-2xl
+          bg-white
+          border border-gray-200
           transition-all duration-300
-          hover:scale-[1.01] hover:shadow-lg
-          ${
-            isInactive
-              ? 'bg-white/10 border border-white/20 opacity-70'
-              : 'bg-white/15 border border-white/30'
-          }
-          shadow-[0_6px_16px_rgba(15,23,42,0.12)]
+          hover:-translate-y-1 hover:shadow-xl
+          ${isInactive ? 'opacity-70' : ''}
+          shadow-[-6px_8px_18px_rgba(15,23,42,0.18)]
         `}
       >
-        <div
-          className="
-            absolute -top-20 -right-20
-            h-40 w-40 rounded-full
-            bg-gradient-to-br
-            from-indigo-950/25 via-indigo-900/10 to-transparent
-            blur-3xl
-          "
-        />
-
-        <div
-          className="
-            absolute inset-0 pointer-events-none
-            bg-gradient-to-br
-            from-white/20 via-white/5 to-transparent
-          "
-        />
-
-        <CardHeader className="relative pb-2">
+        <CardHeader className="pb-2">
           <div className="flex items-start justify-between gap-3">
-            <CardTitle className="text-base font-medium text-gray-900 line-clamp-2">
+            <CardTitle className="text-base font-semibold text-gray-900 line-clamp-2">
               {data.title}
             </CardTitle>
 
             {isInactive && (
-              <span
-                className="
-                  text-[11px]
-                  px-2 py-0.5
-                  rounded-md
-                  bg-indigo-950/80 text-white
-                  font-medium
-                "
-              >
+              <span className="text-[11px] px-2 py-0.5 rounded-md bg-gray-200 text-gray-700 font-medium">
                 Inactive
               </span>
             )}
           </div>
         </CardHeader>
 
-        <CardContent className="relative space-y-3 text-sm text-gray-700">
+        <CardContent className="space-y-3 text-sm text-gray-700">
           <p className="line-clamp-2">
             {data.description || 'No description'}
           </p>
 
           <div className="flex flex-wrap gap-2 text-xs font-medium">
-            <div className="px-3 py-1 rounded-md bg-indigo-950 text-white">
+            <div className="px-3 py-1 rounded-md bg-indigo-100 text-indigo-800">
               {data.itemCount || 0} sections
             </div>
 
-            <div className="px-3 py-1 rounded-md bg-indigo-950/90 text-white">
+            <div className="px-3 py-1 rounded-md bg-indigo-100 text-indigo-800">
               {data.estimatedDays || 0} days
             </div>
           </div>
 
-          <div
-            className="
-              flex justify-between
-              text-xs text-gray-700
-              pt-3 mt-2
-              border-t border-white/30
-            "
-          >
+          <div className="flex justify-between text-xs text-gray-600 pt-3 mt-2 border-t">
             <span>{data.enrolledCount || 0} enrolled</span>
             <span>{data.activeCount || 0} active</span>
           </div>

@@ -18,8 +18,6 @@ export default function ModuleFormCreate() {
     { title: "", description: "", url: "" },
   ]);
 
-  const [loading, setLoading] = useState(false);
-
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -44,9 +42,19 @@ export default function ModuleFormCreate() {
   return (
     <form onSubmit={handleSubmit} className="space-y-6 max-w-5xl mx-auto">
 
-      <Card className="bg-white/15 backdrop-blur border border-white/30 rounded-2xl">
-        <CardHeader>
-          <CardTitle>Module Information</CardTitle>
+      {/* ===== MODULE INFO ===== */}
+      <Card
+        className="
+          bg-white
+          border border-gray-200
+          rounded-2xl
+          shadow-[-6px_8px_18px_rgba(15,23,42,0.15)]
+        "
+      >
+        <CardHeader className="pb-4">
+          <CardTitle className="text-lg font-semibold text-gray-900">
+            Module Information
+          </CardTitle>
           <p className="text-sm text-gray-600">
             Basic information about the learning module
           </p>
@@ -55,24 +63,37 @@ export default function ModuleFormCreate() {
         <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <Label>Module Title *</Label>
-            <Input value={moduleTitle} onChange={(e) => setModuleTitle(e.target.value)} />
+            <Input
+              value={moduleTitle}
+              onChange={(e) => setModuleTitle(e.target.value)}
+            />
           </div>
 
           <div>
             <Label>Estimated Days *</Label>
-            <Input type="number" value={estimatedDays} onChange={(e) => setEstimatedDays(e.target.value)} />
+            <Input
+              type="number"
+              value={estimatedDays}
+              onChange={(e) => setEstimatedDays(e.target.value)}
+            />
           </div>
 
           <div className="md:col-span-2">
             <Label>Description</Label>
-            <Textarea value={moduleDesc} onChange={(e) => setModuleDesc(e.target.value)} />
+            <Textarea
+              rows={4}
+              value={moduleDesc}
+              onChange={(e) => setModuleDesc(e.target.value)}
+            />
           </div>
         </CardContent>
       </Card>
 
+      {/* ===== SECTIONS ===== */}
       <SectionFormCreate sections={sections} onSectionsChange={setSections} />
 
-      <div className="flex justify-end gap-3">
+      {/* ===== ACTIONS ===== */}
+      <div className="flex justify-end gap-3 pt-2">
         <Button
           type="submit"
           className="bg-emerald-600 hover:bg-emerald-700 text-white"

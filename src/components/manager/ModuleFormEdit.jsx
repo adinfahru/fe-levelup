@@ -24,7 +24,6 @@ export default function ModuleFormEdit({ moduleId }) {
   const [moduleDesc, setModuleDesc] = useState("");
   const [estimatedDays, setEstimatedDays] = useState("");
   const [sections, setSections] = useState([]);
-  const [originalSectionCount, setOriginalSectionCount] = useState(0);
 
   useEffect(() => {
     const fetchModule = async () => {
@@ -46,7 +45,6 @@ export default function ModuleFormEdit({ moduleId }) {
           }));
 
         setSections(transformed);
-        setOriginalSectionCount(transformed.length);
       } catch (err) {
         setError(err.message);
       } finally {
@@ -106,7 +104,7 @@ export default function ModuleFormEdit({ moduleId }) {
 
   if (loading) {
     return (
-      <Card>
+      <Card className="bg-white border border-gray-200 rounded-2xl shadow-[-6px_8px_18px_rgba(15,23,42,0.15)]">
         <CardContent className="p-8 text-center text-gray-500">
           Loading module data...
         </CardContent>
@@ -116,7 +114,7 @@ export default function ModuleFormEdit({ moduleId }) {
 
   if (error && !submitting) {
     return (
-      <Card>
+      <Card className="bg-white border border-gray-200 rounded-2xl shadow-[-6px_8px_18px_rgba(15,23,42,0.15)]">
         <CardContent className="p-8 text-center text-red-600">
           {error}
         </CardContent>
@@ -127,9 +125,19 @@ export default function ModuleFormEdit({ moduleId }) {
   return (
     <form onSubmit={handleSubmit} className="space-y-6 max-w-5xl mx-auto">
 
-      <Card className="bg-white/15 backdrop-blur border border-white/30 rounded-2xl">
-        <CardHeader>
-          <CardTitle>Module Information</CardTitle>
+      {/* ===== MODULE INFO ===== */}
+      <Card
+        className="
+          bg-white
+          border border-gray-200
+          rounded-2xl
+          shadow-[-6px_8px_18px_rgba(15,23,42,0.15)]
+        "
+      >
+        <CardHeader className="pb-4">
+          <CardTitle className="text-lg font-semibold text-gray-900">
+            Module Information
+          </CardTitle>
           <p className="text-sm text-gray-600">
             Update basic module information
           </p>
@@ -158,6 +166,7 @@ export default function ModuleFormEdit({ moduleId }) {
           <div className="md:col-span-2">
             <Label>Description</Label>
             <Textarea
+              rows={4}
               value={moduleDesc}
               onChange={(e) => setModuleDesc(e.target.value)}
             />
@@ -165,12 +174,14 @@ export default function ModuleFormEdit({ moduleId }) {
         </CardContent>
       </Card>
 
+      {/* ===== SECTIONS ===== */}
       <SectionFormEdit
         sections={sections}
         onSectionsChange={setSections}
       />
 
-      <div className="flex justify-end gap-3">
+      {/* ===== ACTIONS ===== */}
+      <div className="flex justify-end gap-3 pt-2">
         <Button
           type="submit"
           disabled={submitting}

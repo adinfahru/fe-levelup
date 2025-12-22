@@ -34,14 +34,16 @@ export default function SectionFormCreate({
   return (
     <Card
       className="
-        bg-white/15 backdrop-blur-xl
-        border border-white/30
+        bg-white
+        border border-gray-200
         rounded-2xl
+        shadow-[-6px_8px_18px_rgba(15,23,42,0.15)]
       "
     >
-      <CardHeader className="flex flex-row items-center justify-between">
+      {/* ===== HEADER ===== */}
+      <CardHeader className="flex flex-row items-center justify-between pb-4">
         <div>
-          <CardTitle className="text-lg">
+          <CardTitle className="text-lg font-semibold text-gray-900">
             Learning Sections
           </CardTitle>
           <p className="text-sm text-gray-600">
@@ -59,12 +61,14 @@ export default function SectionFormCreate({
         </Button>
       </CardHeader>
 
+      {/* ===== CONTENT ===== */}
       <CardContent className="space-y-6">
         {sections.map((section, index) => {
           const isLast = index === sections.length - 1;
 
           return (
             <div key={index} className="flex gap-4">
+              {/* NUMBER INDICATOR */}
               <div className="flex flex-col items-center">
                 <div className="h-8 w-8 rounded-full bg-indigo-600 text-white flex items-center justify-center text-sm font-semibold">
                   {index + 1}
@@ -74,9 +78,17 @@ export default function SectionFormCreate({
                 )}
               </div>
 
+              {/* SECTION CARD */}
               <div className="flex-1">
-                <Card className="bg-white/20 border border-white/30 rounded-xl shadow-sm">
-                  <CardHeader className="flex flex-row items-center justify-between py-3 px-4 bg-white/30 rounded-t-xl">
+                <Card
+                  className="
+                    bg-white
+                    border border-gray-200
+                    rounded-xl
+                    shadow-[-4px_6px_14px_rgba(15,23,42,0.12)]
+                  "
+                >
+                  <CardHeader className="flex flex-row items-center justify-between py-3 px-4 border-b">
                     <span className="font-medium text-gray-900">
                       Section {index + 1}
                     </span>
@@ -109,6 +121,7 @@ export default function SectionFormCreate({
                     <div>
                       <Label>Description</Label>
                       <Textarea
+                        rows={3}
                         value={section.description}
                         onChange={(e) =>
                           updateSection(index, "description", e.target.value)
