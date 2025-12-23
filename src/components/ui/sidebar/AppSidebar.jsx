@@ -15,7 +15,6 @@ export default function AppSidebar({ title, items, onLogout }) {
   const pathname = useRouterState({
     select: (s) => s.location.pathname,
   });
-
   const navigate = useNavigate();
 
   const handleLogout = () => {
@@ -25,24 +24,29 @@ export default function AppSidebar({ title, items, onLogout }) {
   };
 
   const isItemActive = (item) => {
-    if (item.activePaths) {
-      return item.activePaths.some((path) => pathname === path || pathname.startsWith(path + '/'));
+    if (item.activePaths?.length) {
+      return item.activePaths.some(
+        (p) => pathname === p || pathname.startsWith(p + '/')
+      );
     }
-
     return pathname === item.to || pathname.startsWith(item.to + '/');
   };
 
   return (
     <Sidebar className="bg-indigo-950 text-indigo-100 border-r border-indigo-900">
       <SidebarContent className="flex flex-col h-full">
-        {/* MAIN MENU */}
-        <SidebarGroup className="flex-1">
-          <SidebarGroupLabel className="text-indigo-200 text-lg font-semibold px-4 py-3 mb-3">
+
+        {/* HEADER */}
+        <SidebarGroup>
+          <SidebarGroupLabel className="px-4 py-4 text-indigo-200 text-lg font-semibold">
             {title}
           </SidebarGroupLabel>
+        </SidebarGroup>
 
+        {/* MENU */}
+        <SidebarGroup className="flex-1">
           <SidebarGroupContent>
-            <SidebarMenu>
+            <SidebarMenu className="space-y-1 px-2">
               {items.map((item) => {
                 const active = isItemActive(item);
 
@@ -51,17 +55,21 @@ export default function AppSidebar({ title, items, onLogout }) {
                     <SidebarMenuButton
                       asChild
                       className={`
-                        flex items-center gap-3 px-3 py-2 rounded-lg transition
+                        flex items-center gap-3
+                        px-3 py-2 rounded-lg
+                        transition
                         ${
                           active
-                            ? 'bg-indigo-900 border-l-4 border-indigo-400 text-white'
-                            : 'hover:bg-indigo-900/40 text-indigo-200'
+                            ? 'bg-indigo-900 text-white'
+                            : 'text-indigo-200 hover:bg-indigo-900/60'
                         }
                       `}
                     >
                       <Link to={item.to}>
-                        <item.icon className="w-5 h-5 shrink-0" />
-                        <span>{item.title}</span>
+                        <item.icon className="w-5 h-5" />
+                        <span className="text-sm font-medium">
+                          {item.title}
+                        </span>
                       </Link>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
@@ -74,15 +82,20 @@ export default function AppSidebar({ title, items, onLogout }) {
         {/* LOGOUT */}
         {onLogout && (
           <SidebarGroup>
-            <SidebarGroupContent className="px-2 pb-3">
+            <SidebarGroupContent className="px-2 pb-4">
               <SidebarMenu>
                 <SidebarMenuItem>
                   <SidebarMenuButton
                     onClick={handleLogout}
-                    className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-red-600/40 text-red-400"
+                    className="
+                      flex items-center gap-3
+                      px-3 py-2 rounded-lg
+                      text-red-300
+                      hover:bg-red-600/20
+                    "
                   >
                     <LogOut className="w-5 h-5" />
-                    <span>Logout</span>
+                    <span className="text-sm font-medium">Logout</span>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               </SidebarMenu>

@@ -18,7 +18,7 @@ export default function Home() {
             Employee Development Management System
           </p>
           <p className="text-lg text-gray-500 max-w-2xl mx-auto">
-            Empower your team with structured learning paths, track progress, and achieve
+            Empower employee with structured learning paths, track progress, and achieve
             professional growth together.
           </p>
 
@@ -89,35 +89,17 @@ export default function Home() {
             <div className="w-12 h-12 bg-pink-100 rounded-lg flex items-center justify-center">
               <Users className="w-6 h-6 text-pink-600" />
             </div>
-            <h3 className="text-xl font-bold text-gray-900">Team Management</h3>
+            <h3 className="text-xl font-bold text-gray-900">Employee Management</h3>
             <p className="text-gray-600">
-              Empower managers to oversee team development, review submissions, and provide
+              Empower managers to oversee employee, review submissions, and provide
               meaningful feedback.
             </p>
           </div>
         </div>
 
-        {/* Stats Section */}
-        <div className="mt-20 bg-white rounded-2xl shadow-xl p-8 md:p-12 max-w-4xl mx-auto">
-          <div className="grid md:grid-cols-3 gap-8 text-center">
-            <div>
-              <div className="text-4xl font-bold text-indigo-600">100+</div>
-              <div className="text-gray-600 mt-2">Learning Modules</div>
-            </div>
-            <div>
-              <div className="text-4xl font-bold text-purple-600">500+</div>
-              <div className="text-gray-600 mt-2">Active Employees</div>
-            </div>
-            <div>
-              <div className="text-4xl font-bold text-pink-600">95%</div>
-              <div className="text-gray-600 mt-2">Completion Rate</div>
-            </div>
-          </div>
-        </div>
-
         {/* Footer */}
         <div className="mt-16 text-center text-gray-500 text-sm">
-          <p>© 2025 LevelUp. All rights reserved.</p>
+          <p>© 2025 Metrodata. All rights reserved.</p>
         </div>
       </div>
     </div>

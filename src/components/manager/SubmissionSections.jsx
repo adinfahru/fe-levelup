@@ -1,78 +1,140 @@
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
-import { CheckCircle, Lock, Clock, ExternalLink } from "lucide-react";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { ExternalLink } from "lucide-react";
 
-export function SubmissionSections({ sections }) {
+/* =========================
+   HELPERS
+========================= */
+
+function normalizeUrl(raw) {
+  if (!raw) return null;
+
+  if (raw.startsWith("http://") || raw.startsWith("https://")) {
+    return raw;
+  }
+
+  // github username only
+  if (!raw.includes("/") && !raw.includes(".")) {
+    return `https://github.com/${raw}`;
+  }
+
+  return `https://${raw}`;
+}
+
+function getEmbedUrl(url) {
+  if (!url) return null;
+
+  // ❌ GitHub → jangan iframe
+  if (url.includes("github.com")) return null;
+
+  // YouTube
+  if (url.includes("youtube.com") || url.includes("youtu.be")) {
+    const id = url.includes("youtu.be")
+      ? url.split("/").pop()
+      : new URL(url).searchParams.get("v");
+
+    return id ? `https://www.youtube.com/embed/${id}` : null;
+  }
+
+  // Google Docs / Drive
+  if (url.includes("docs.google.com")) {
+    return `${url.replace("/edit", "")}/preview`;
+  }
+
+  return null;
+}
+
+/* =========================
+   COMPONENT
+========================= */
+
+export function SubmissionSections({ sections = [] }) {
   return (
-    <div className="space-y-4">
-      {sections.map((section) => {
-        const isCompleted = section.status === "Completed";
-        const isLocked = section.status === "Locked";
+    <div className="space-y-6">
+      {sections.map((section, index) => {
+        const isLast = index === sections.length - 1;
+
+        const statusStyle = {
+          Completed: "bg-emerald-100 text-emerald-800",
+          OnProgress: "bg-yellow-100 text-yellow-800",
+          Locked: "bg-gray-200 text-gray-600",
+        };
+
+        const normalizedUrl = normalizeUrl(section.evidenceUrl);
+        const embedUrl = getEmbedUrl(normalizedUrl);
 
         return (
-          <Card
-            key={section.orderIndex}
-            className={`relative pl-12 rounded-2xl border shadow-sm
-              ${
-                isCompleted
-                  ? "bg-white border-gray-200"
-                  : isLocked
-                  ? "bg-gray-50 border-gray-200 opacity-60"
-                  : "bg-white border-gray-200"
-              }
-            `}
-          >
-            {/* STATUS ICON */}
-            <div className="absolute left-4 top-6">
-              {isCompleted && (
-                <CheckCircle className="w-5 h-5 text-green-600" />
-              )}
-              {section.status === "OnProgress" && (
-                <Clock className="w-5 h-5 text-yellow-500" />
-              )}
-              {isLocked && (
-                <Lock className="w-5 h-5 text-gray-400" />
+          <div key={section.orderIndex} className="flex gap-4">
+            {/* ===== TIMELINE NUMBER ===== */}
+            <div className="flex flex-col items-center">
+              <div className="h-8 w-8 rounded-full bg-indigo-600 text-white flex items-center justify-center text-sm font-semibold">
+                {section.orderIndex}
+              </div>
+              {!isLast && (
+                <div className="flex-1 w-px bg-indigo-300 mt-1" />
               )}
             </div>
 
-            <CardHeader className="pb-2">
-              <CardTitle className="text-lg font-semibold">
-                {section.orderIndex}. {section.title}
-              </CardTitle>
-            </CardHeader>
+            {/* ===== SECTION CARD ===== */}
+            <div className="flex-1">
+              <Card className="bg-white border border-gray-200 rounded-xl shadow-sm">
+                <CardHeader className="flex flex-row items-center justify-between py-3 px-4 border-b">
+                  <CardTitle className="text-base font-semibold text-gray-900">
+                    {section.title}
+                  </CardTitle>
 
-            <CardContent className="space-y-3 text-sm">
-              {/* DESCRIPTION / FEEDBACK */}
-              {section.description ? (
-                <p className="text-gray-700 leading-relaxed">
-                  {section.description}
-                </p>
-              ) : (
-                <p className="italic text-gray-400">
-                  Belum ada laporan pada section ini.
-                </p>
-              )}
+                  <Badge className={statusStyle[section.status]}>
+                    {section.status}
+                  </Badge>
+                </CardHeader>
 
-              {/* EVIDENCE */}
-              {section.evidenceUrl ? (
-                <a
-                  href={section.evidenceUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1 text-indigo-600 hover:underline"
-                >
-                  <ExternalLink className="w-4 h-4" />
-                  Lihat bukti pengerjaan
-                </a>
-              ) : section.status === "Completed" ? (
-                <p className="italic text-gray-400">
-                  Tidak ada link bukti
-                </p>
-              ) : null}
-            </CardContent>
+                <CardContent className="space-y-4 p-4 text-sm">
+                  {/* DESCRIPTION */}
+                  {section.description ? (
+                    <p className="text-gray-700 leading-relaxed">
+                      {section.description}
+                    </p>
+                  ) : (
+                    <p className="italic text-gray-400">
+                      Belum ada laporan pada section ini.
+                    </p>
+                  )}
 
-            <Separator />
-          </Card>
+                  {/* ===== EVIDENCE PREVIEW ===== */}
+                  {embedUrl ? (
+                    <div className="overflow-hidden rounded-lg border bg-gray-50">
+                      <iframe
+                        src={embedUrl}
+                        title="Evidence Preview"
+                        className="w-full h-64"
+                        loading="lazy"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      />
+                    </div>
+                  ) : normalizedUrl ? (
+                    <a
+                      href={normalizedUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 text-indigo-600 hover:underline text-sm"
+                    >
+                      <ExternalLink className="w-4 h-4" />
+                      Lihat bukti pengerjaan
+                    </a>
+                  ) : section.status === "Completed" ? (
+                    <p className="italic text-gray-400">
+                      Tidak ada link bukti
+                    </p>
+                  ) : null}
+                </CardContent>
+              </Card>
+            </div>
+          </div>
         );
       })}
     </div>

@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/dialog";
 import { authAPI } from "@/api/auth.api";
 
-export default function ProfileEmployee() {
+export default function ProfileManager() {
   const { user, logout } = useContext(AuthContext);
 
   const [profile, setProfile] = useState(null);
@@ -69,7 +69,7 @@ export default function ProfileEmployee() {
     return () => clearTimeout(timer);
   }, [countdown]);
 
-  // Auto-send OTP once dialog opens
+  // Auto-send OTP when dialog opens (once)
   useEffect(() => {
     if (isDialogOpen && !otpSentRef.current) {
       otpSentRef.current = true;
@@ -132,7 +132,7 @@ export default function ProfileEmployee() {
             <div className="lg:col-span-2 p-6 space-y-6">
               <CardHeader className="p-0">
                 <CardTitle className="text-lg">
-                  Employee Information
+                  Manager Information
                 </CardTitle>
                 <p className="text-sm text-gray-600">
                   Account details
