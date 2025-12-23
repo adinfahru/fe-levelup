@@ -1,4 +1,4 @@
-import { useNavigate, getRouteApi } from '@tanstack/react-router';
+import { getRouteApi } from '@tanstack/react-router';
 import { useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -12,17 +12,31 @@ export default function ModuleList() {
   const [search, setSearch] = useState('');
   const data = Route.useLoaderData();
 
-  // Extract items array from API response
-  const modules = data?.items || [];
+  // Extract items array from API response (support array or { items })
+  const modules = Array.isArray(data) ? data : data?.items || [];
 
-  const filtered = modules.filter((m) => m.title?.toLowerCase().includes(search.toLowerCase()));
+  const isActive = (m) => {
+    if (!m) return false;
+    if (m.active === true || m.isActive === true) return true;
+    const status = String(m.status || '').toLowerCase();
+    return (
+      status === 'active' ||
+      status === 'ongoing' ||
+      status === 'on-going' ||
+      status === 'inprogress' ||
+      status === 'in-progress'
+    );
+  };
+
+  const filtered = modules
+    .filter((m) => isActive(m))
+    .filter((m) => m.title?.toLowerCase().includes(search.toLowerCase()));
 
   return (
     <div className="w-full p-6 space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-semibold">Module</h2>
-
       </div>
 
       {/* Search */}
@@ -36,10 +50,6 @@ export default function ModuleList() {
             onChange={(e) => setSearch(e.target.value)}
           />
         </div>
-
-        <Button variant="outline" className="border-indigo-800 text-indigo-800">
-          Filter
-        </Button>
       </div>
 
       {/* Modules Grid */}
