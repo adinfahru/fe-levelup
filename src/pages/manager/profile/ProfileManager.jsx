@@ -22,15 +22,22 @@ import { authAPI } from "@/api/auth.api";
 export default function ProfileManager() {
   const { user, logout } = useContext(AuthContext);
 
+  const [profile, setProfile] = useState(null);
+  const [loading, setLoading] = useState(true);
+
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [step, setStep] = useState("send");
-  const [email] = useState(user?.email || "");
+
+  const email = user?.email || "";
   const [otp, setOtp] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
   const [countdown, setCountdown] = useState(0);
+
   const otpSentRef = useRef(false);
+
+  /* ================= MUTATIONS ================= */
 
   const requestMutation = useMutation({
     mutationFn: authAPI.requestPasswordReset,
@@ -53,22 +60,40 @@ export default function ProfileManager() {
       setError(err.message || "Failed to change password"),
   });
 
+  /* ================= EFFECTS ================= */
+
+  // Countdown OTP
   useEffect(() => {
-    if (countdown > 0) {
-      const timer = setTimeout(
-        () => setCountdown((c) => c - 1),
-        1000
-      );
-      return () => clearTimeout(timer);
-    }
+    if (countdown <= 0) return;
+    const timer = setTimeout(() => setCountdown((c) => c - 1), 1000);
+    return () => clearTimeout(timer);
   }, [countdown]);
 
+  // Auto-send OTP when dialog opens (once)
   useEffect(() => {
     if (isDialogOpen && !otpSentRef.current) {
       otpSentRef.current = true;
       requestMutation.mutate({ email });
     }
   }, [isDialogOpen, email, requestMutation]);
+
+  // Fetch profile
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const res = await authAPI.getProfile();
+        setProfile(res.data);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProfile();
+  }, []);
+
+  /* ================= HANDLERS ================= */
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -83,10 +108,14 @@ export default function ProfileManager() {
   };
 
   if (!user) return null;
+  if (loading) return <p className="p-6">Loading profile...</p>;
+  if (!profile) return <p className="p-6">Failed to load profile</p>;
+
+  /* ================= RENDER ================= */
 
   return (
     <div className="max-w-5xl mx-auto space-y-6 p-6">
-      {/* ===== HEADER ===== */}
+      {/* HEADER */}
       <div>
         <h1 className="text-2xl font-semibold text-gray-900">
           Profile
@@ -96,11 +125,10 @@ export default function ProfileManager() {
         </p>
       </div>
 
-      {/* ===== MAIN CARD ===== */}
       <Card className="overflow-hidden rounded-2xl bg-white border shadow-sm">
         <CardContent className="p-0">
           <div className="grid grid-cols-1 lg:grid-cols-3">
-            {/* ================= LEFT ================= */}
+            {/* LEFT */}
             <div className="lg:col-span-2 p-6 space-y-6">
               <CardHeader className="p-0">
                 <CardTitle className="text-lg">
@@ -111,22 +139,22 @@ export default function ProfileManager() {
                 </p>
               </CardHeader>
 
-              {/* INFO (NAME → EMAIL → ROLE) */}
               <div className="space-y-3">
                 <Info label="Name">
-                  {user.firstName} {user.lastName}
+                  {profile.employee.firstName}{" "}
+                  {profile.employee.lastName}
                 </Info>
 
                 <Info label="Email">
-                  {user.email}
+                  {profile.account.email}
                 </Info>
 
                 <Info label="Role">
-                  {user.role}
+                  {profile.account.role}
                 </Info>
               </div>
 
-              {/* ACTION */}
+              {/* CHANGE PASSWORD */}
               <Dialog
                 open={isDialogOpen}
                 onOpenChange={(open) => {
@@ -150,9 +178,7 @@ export default function ProfileManager() {
 
                 <DialogContent className="sm:max-w-md">
                   <DialogHeader>
-                    <DialogTitle>
-                      Change Password
-                    </DialogTitle>
+                    <DialogTitle>Change Password</DialogTitle>
                   </DialogHeader>
 
                   {step === "send" && (
@@ -171,7 +197,7 @@ export default function ProfileManager() {
                       >
                         {requestMutation.isPending
                           ? "Sending OTP..."
-                          : "Sending OTP"}
+                          : "Send OTP"}
                       </Button>
                     </div>
                   )}
@@ -221,7 +247,7 @@ export default function ProfileManager() {
               </Dialog>
             </div>
 
-            {/* ================= RIGHT (VECTOR) ================= */}
+            {/* RIGHT VECTOR */}
             <div className="relative hidden lg:flex items-center justify-center bg-gradient-to-br from-indigo-100 to-white">
               <div className="absolute h-64 w-64 rounded-full bg-indigo-600/10" />
               <div className="absolute bottom-10 right-10 h-24 w-24 rounded-full bg-indigo-600/20" />
@@ -236,15 +262,13 @@ export default function ProfileManager() {
   );
 }
 
-/* ================= COMPONENTS ================= */
+/* ================= SMALL COMPONENTS ================= */
 
 function Info({ label, children }) {
   return (
     <div className="rounded-lg bg-gray-50 px-4 py-3">
       <p className="text-xs text-gray-500">{label}</p>
-      <p className="font-medium text-gray-900">
-        {children}
-      </p>
+      <p className="font-medium text-gray-900">{children}</p>
     </div>
   );
 }
