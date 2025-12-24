@@ -78,6 +78,11 @@ export default function UserForm({ user, onSuccess, onCancel, positions }) {
     }
   };
 
+  const validatePassword = (pwd) => {
+    // Min 8 chars, at least 1 uppercase and 1 symbol
+    return pwd && pwd.length >= 8 && /[A-Z]/.test(pwd) && /[^A-Za-z0-9]/.test(pwd);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
@@ -92,8 +97,14 @@ export default function UserForm({ user, onSuccess, onCancel, positions }) {
         if (!payload.password || payload.password.trim() === '') {
           // Edit mode and no new password - remove password field entirely
           delete payload.password;
+        } else {
+          // Validate new password
+          if (!validatePassword(payload.password)) {
+            setError('Password minimal 8 karakter, ada simbol, dan 1 huruf besar');
+            setLoading(false);
+            return;
+          }
         }
-        // else: user entered a new password, keep it
       }
 
       // Validate required fields
@@ -104,10 +115,17 @@ export default function UserForm({ user, onSuccess, onCancel, positions }) {
       }
 
       // For create mode: password is required
-      if (!user?.accountId && (!payload.password || payload.password.trim() === '')) {
-        setError('Password is required for new users');
-        setLoading(false);
-        return;
+      if (!user?.accountId) {
+        if (!payload.password || payload.password.trim() === '') {
+          setError('Password is required for new users');
+          setLoading(false);
+          return;
+        }
+        if (!validatePassword(payload.password)) {
+          setError('Password minimal 8 karakter, ada simbol, dan 1 huruf besar');
+          setLoading(false);
+          return;
+        }
       }
 
       // Ensure positionId is a valid UUID or null
