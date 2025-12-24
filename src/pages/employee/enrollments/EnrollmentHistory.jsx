@@ -17,20 +17,31 @@ export default function EnrollmentHistory() {
 
   return (
     <div className="w-full p-6 space-y-6">
-      <h2 className="text-xl font-semibold">History Module</h2>
-
-      <div className="flex items-center gap-3 w-full max-w-md">
-        <div className="relative w-full">
-          <Search className="absolute left-2 top-2.5 w-4 h-4 text-gray-500" />
-          <Input
-            placeholder="Search module"
-            className="pl-8"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
+      <div>
+          <h2 className="text-2xl font-semibold tracking-tight text-gray-900">
+            History Module
+          </h2>
+          <p className="text-sm text-gray-600">
+            Manage history modules
+          </p>
         </div>
-        <Button variant="outline">Filter</Button>
-      </div>
+
+      <div className="flex items-center gap-3 max-w-sm">
+          <div className="relative flex-1">
+            <Search className="absolute left-2.5 top-2.5 w-4 h-4 text-gray-500" />
+            <Input
+              placeholder="Search history modules..."
+              className="
+                h-9 pl-9
+                bg-white/80
+                border-gray-300
+                focus-visible:ring-indigo-800
+              "
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+          </div>
+        </div>
 
       {filtered.length === 0 ? (
         <p className="text-sm text-gray-500 italic">
