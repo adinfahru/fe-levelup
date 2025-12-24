@@ -1,4 +1,4 @@
-import { useNavigate, getRouteApi } from '@tanstack/react-router';
+import { getRouteApi } from '@tanstack/react-router';
 import { useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -12,10 +12,25 @@ export default function ModuleList() {
   const [search, setSearch] = useState('');
   const data = Route.useLoaderData();
 
-  // Extract items array from API response
-  const modules = data?.items || [];
+  // Extract items array from API response (support array or { items })
+  const modules = Array.isArray(data) ? data : data?.items || [];
 
-  const filtered = modules.filter((m) => m.title?.toLowerCase().includes(search.toLowerCase()));
+  const isActive = (m) => {
+    if (!m) return false;
+    if (m.active === true || m.isActive === true) return true;
+    const status = String(m.status || '').toLowerCase();
+    return (
+      status === 'active' ||
+      status === 'ongoing' ||
+      status === 'on-going' ||
+      status === 'inprogress' ||
+      status === 'in-progress'
+    );
+  };
+
+  const filtered = modules
+    .filter((m) => isActive(m))
+    .filter((m) => m.title?.toLowerCase().includes(search.toLowerCase()));
 
   return (
     <div className="w-full p-6 space-y-6">
