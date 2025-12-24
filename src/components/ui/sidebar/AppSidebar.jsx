@@ -51,7 +51,7 @@ export default function AppSidebar({ title, items, onLogout }) {
                 const active = isItemActive(item);
 
                 return (
-                  <SidebarMenuItem key={item.title}>
+                  <SidebarMenuItem key={item.to}>
                     <SidebarMenuButton
                       asChild
                       className={`
