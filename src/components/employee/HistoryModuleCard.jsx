@@ -1,6 +1,7 @@
 import { Link } from '@tanstack/react-router';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import clsx from 'clsx';
+import { CheckCircle } from 'lucide-react';
 
 export function HistoryModuleCard({ data }) {
   const isCompleted =
@@ -11,23 +12,66 @@ export function HistoryModuleCard({ data }) {
   const card = (
     <Card
       className={clsx(
-        'bg-white border shadow-sm transition-all',
-        isCompleted ? 'opacity-50 cursor-not-allowed' : 'hover:shadow-md cursor-pointer'
+        `
+          relative overflow-hidden rounded-2xl
+          border border-gray-200 bg-white
+          transition-all duration-300
+        `,
+        isCompleted
+          ? 'opacity-60'
+          : 'hover:-translate-y-1 hover:shadow-xl cursor-pointer'
       )}
     >
-      <CardHeader>
-        <CardTitle className="text-base font-medium">{data.moduleTitle}</CardTitle>
+      {/* subtle accent */}
+      <div className="absolute -top-20 -right-20 h-56 w-56 rounded-full bg-indigo-100/40 blur-3xl pointer-events-none" />
+
+      <CardHeader className="relative pb-2 space-y-2">
+        <CardTitle className="text-base font-semibold text-gray-900 line-clamp-2">
+          {data.moduleTitle}
+        </CardTitle>
+
+        {isCompleted && (
+          <span className="inline-flex w-fit items-center gap-1 rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-medium text-emerald-700">
+            <CheckCircle className="h-3.5 w-3.5" />
+            Completed
+          </span>
+        )}
       </CardHeader>
 
-      <CardContent className="space-y-3 text-sm text-gray-600">
-        <p className="line-clamp-2">{data.moduleDescription || '-'}</p>
 
-        <span className="bg-indigo-600 text-white px-3 py-1 rounded-md inline-block text-xs">
-          {data.currentProgress ?? 0}%
-        </span>
+      <CardContent className="relative space-y-4 text-sm">
+        {/* DESCRIPTION */}
+        <p className="text-gray-600 line-clamp-2">
+          {data.moduleDescription || 'No description provided'}
+        </p>
 
-        <p className="text-xs italic text-gray-400 pt-1">
-          {isCompleted ? `Completed at ${data.completedDate}` : data.status}
+        {/* PROGRESS */}
+        <div className="space-y-1">
+          <div className="flex justify-between text-xs text-gray-600">
+            <span>Progress</span>
+            <span>{data.currentProgress ?? 0}%</span>
+          </div>
+
+          <div className="h-2 w-full rounded-full bg-gray-200 overflow-hidden">
+            <div
+              className={clsx(
+                'h-full transition-all',
+                isCompleted ? 'bg-emerald-600' : 'bg-indigo-600'
+              )}
+              style={{ width: `${data.currentProgress ?? 0}%` }}
+            />
+          </div>
+        </div>
+
+        {/* FOOTER INFO */}
+        <p className="text-xs text-gray-400">
+          {isCompleted
+            ? `Completed on ${new Date(data.completedDate).toLocaleDateString('id-ID', {
+                day: 'numeric',
+                month: 'short',
+                year: 'numeric',
+              })}`
+            : data.status}
         </p>
       </CardContent>
     </Card>
