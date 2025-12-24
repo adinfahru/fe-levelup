@@ -3,8 +3,8 @@ import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { Building, User, Menu } from 'lucide-react';
 import AppSidebar from '@/components/ui/sidebar/AppSidebar';
 import { useAuth } from '@/hooks/useAuth';
-import { useState, useEffect } from 'react';
-import { authAPI } from '@/api/auth.api'; // ✅ WAJIB
+import { useQuery } from '@tanstack/react-query';
+import { authAPI } from '@/api/auth.api';
 
 const adminItems = [
   { title: 'Users', to: '/admin/users', icon: User },
@@ -12,28 +12,22 @@ const adminItems = [
 ];
 
 export default function AdminLayout() {
-  const { logout } = useAuth();
-  const [profile, setProfile] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const { logout, user } = useAuth();
 
-  useEffect(() => {
-    const fetchProfile = async () => {
-      try {
-        const res = await authAPI.getProfile();
-        setProfile(res.data);
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
-    };
+  const { data, isLoading } = useQuery({
+    queryKey: ['auth-profile'],
+    queryFn: authAPI.getProfile,
+    enabled: !!user,
+    staleTime: 5 * 60 * 1000,        // 5 menit cache
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+  });
 
-    fetchProfile();
-  }, []);
+  const profile = data?.data;
 
   const fullName = profile
     ? `${profile.employee.firstName} ${profile.employee.lastName}`
-      : 'Hi, Admin';
+    : 'Admin';
 
   return (
     <SidebarProvider>
@@ -41,7 +35,7 @@ export default function AdminLayout() {
 
         {/* SIDEBAR */}
         <AppSidebar
-          title={`Hi, ${fullName}`}
+          title={`Hi, ${isLoading ? '...' : fullName}`}
           items={adminItems}
           onLogout={logout}
         />
@@ -53,7 +47,9 @@ export default function AdminLayout() {
             <SidebarTrigger>
               <Menu className="w-6 h-6" />
             </SidebarTrigger>
-            <span className="font-semibold">{fullName}</span>
+            <span className="font-semibold">
+              Hi, {isLoading ? '...' : fullName}
+            </span>
           </div>
 
           {/* CONTENT */}

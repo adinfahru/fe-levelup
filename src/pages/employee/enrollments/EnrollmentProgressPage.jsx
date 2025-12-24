@@ -9,8 +9,15 @@ export default function EnrollmentProgressPage() {
   const { module, progress, activeSection } = data
 
   return (
-    <div className="space-y-8 w-full">
-      <h2 className="text-xl font-semibold">Progress Module</h2>
+    <div className="w-full p-6 space-y-6">
+      <div>
+          <h2 className="text-2xl font-semibold tracking-tight text-gray-900">
+            Progress Module
+          </h2>
+          <p className="text-sm text-gray-600">
+            Manage Progress module
+          </p>
+        </div>
 
       <ModuleProgressCard
         module={module}

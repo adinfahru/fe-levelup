@@ -1,4 +1,5 @@
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 
 export function EmployeeModuleDetail({
   data,
@@ -6,42 +7,65 @@ export function EmployeeModuleDetail({
   enrollDisabled = false,
   enrollLabel = 'Enroll',
 }) {
+  const isInactive = data.isActive === false;
+
   return (
-    <div className="bg-white rounded-xl border shadow-sm p-6 space-y-4">
-      {/* Header */}
-      <div className="flex justify-between items-start gap-6">
-        <div>
-          <h1 className="text-2xl font-semibold">{data.title}</h1>
-          <p className="text-sm text-gray-500">Created by {data.createdBy}</p>
+    <div
+      className="
+        bg-white
+        rounded-2xl
+        border border-gray-200
+        shadow-sm
+        p-6
+        space-y-5
+      "
+    >
+      {/* HEADER */}
+      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+        <div className="space-y-1">
+          <h1 className="text-2xl font-semibold text-gray-900">
+            {data.title}
+          </h1>
+          <p className="text-sm text-gray-500">
+            Created by <span className="font-medium">{data.createdBy}</span>
+          </p>
         </div>
 
         <Button
-          className="bg-red-500 hover:bg-red-600 text-white px-6"
           onClick={onEnroll}
-          disabled={enrollDisabled || data.isActive === false}
+          disabled={enrollDisabled || isInactive}
+          className={`
+            px-6
+            ${isInactive
+              ? 'bg-gray-300 text-gray-600 cursor-not-allowed'
+              : 'bg-emerald-600 hover:bg-emerald-700 text-white'}
+          `}
         >
           {enrollLabel}
         </Button>
       </div>
 
-      {/* Meta info */}
-      <div className="flex flex-wrap gap-3 text-xs text-gray-600">
-        {/* <span className="bg-[#6b3f3c] text-white px-3 py-1 rounded-md">
-          {data.itemCount ?? 0} sections
-        </span> */}
+      {/* META INFO */}
+      <div className="flex flex-wrap gap-2 text-xs">
+        {/* <Badge variant="secondary">
+          {data.itemCount ?? 0} Sections
+        </Badge> */}
 
         {data.estimatedDays != null && (
-          <span className="bg-[#6b3f3c] text-white px-3 py-1 rounded-md">
-            {data.estimatedDays} days
-          </span>
+          <Badge variant="secondary">
+            {data.estimatedDays} Days
+          </Badge>
         )}
 
-        {/* <span>{data.enrolledCount ?? 0} enrolled</span>
-        <span>{data.activeCount ?? 0} active</span> */}
+        <Badge variant="secondary">
+          {data.enrolledCount ?? 0} Enrolled
+        </Badge>
       </div>
 
-      {/* Description */}
-      <p className="text-gray-700">{data.description || '-'}</p>
+      {/* DESCRIPTION */}
+      <p className="text-sm text-gray-700 leading-relaxed">
+        {data.description || 'No description provided.'}
+      </p>
     </div>
   );
 }

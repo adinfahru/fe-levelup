@@ -1,5 +1,5 @@
 import { useState, useContext, useEffect, useRef } from "react";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { AuthContext } from "@/context/auth.context";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -22,9 +22,6 @@ import { authAPI } from "@/api/auth.api";
 export default function ProfileEmployee() {
   const { user, logout } = useContext(AuthContext);
 
-  const [profile, setProfile] = useState(null);
-  const [loading, setLoading] = useState(true);
-
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [step, setStep] = useState("send");
 
@@ -36,6 +33,20 @@ export default function ProfileEmployee() {
   const [countdown, setCountdown] = useState(0);
 
   const otpSentRef = useRef(false);
+
+  /* ================= QUERY ================= */
+
+  const {
+    data: profileRes,
+    isLoading,
+    isError,
+  } = useQuery({
+    queryKey: ["auth-profile"],
+    queryFn: authAPI.getProfile,
+    enabled: !!user, // hanya fetch kalau user ada
+  });
+
+  const profile = profileRes?.data;
 
   /* ================= MUTATIONS ================= */
 
@@ -77,22 +88,6 @@ export default function ProfileEmployee() {
     }
   }, [isDialogOpen, email, requestMutation]);
 
-  // Fetch profile
-  useEffect(() => {
-    const fetchProfile = async () => {
-      try {
-        const res = await authAPI.getProfile();
-        setProfile(res.data);
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchProfile();
-  }, []);
-
   /* ================= HANDLERS ================= */
 
   const handleSubmit = (e) => {
@@ -107,9 +102,12 @@ export default function ProfileEmployee() {
     confirmMutation.mutate({ email, otp, newPassword });
   };
 
+  /* ================= GUARDS ================= */
+
   if (!user) return null;
-  if (loading) return <p className="p-6">Loading profile...</p>;
-  if (!profile) return <p className="p-6">Failed to load profile</p>;
+  if (isLoading) return <p className="p-6">Loading profile...</p>;
+  if (isError || !profile)
+    return <p className="p-6">Failed to load profile</p>;
 
   /* ================= RENDER ================= */
 
