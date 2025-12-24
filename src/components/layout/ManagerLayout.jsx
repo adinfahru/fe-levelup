@@ -3,8 +3,8 @@ import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { LayoutDashboard, BookOpen, Users, FileCheck, Menu } from 'lucide-react';
 import AppSidebar from '@/components/ui/sidebar/AppSidebar';
 import { useAuth } from '@/hooks/useAuth';
-import { useState, useEffect } from 'react';
-import { authAPI } from '@/api/auth.api'; // ✅ WAJIB
+import { useQuery } from '@tanstack/react-query';
+import { authAPI } from '@/api/auth.api';
 
 const managerItems = [
   { title: 'Dashboard', to: '/manager/dashboard', icon: LayoutDashboard },
@@ -25,25 +25,19 @@ const managerItems = [
 ];
 
 export default function ManagerLayout() {
-  const { logout } = useAuth();
-  const [profile, setProfile] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const { logout, user } = useAuth();
 
-  useEffect(() => {
-    const fetchProfile = async () => {
-      try {
-        const res = await authAPI.getProfile();
-        setProfile(res.data);
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
-    };
+  const { data, isLoading } = useQuery({
+    queryKey: ['auth-profile'],
+    queryFn: authAPI.getProfile,
+    enabled: !!user,
+    staleTime: 5 * 60 * 1000,
+    cacheTime: 10 * 60 * 1000,
+    refetchOnWindowFocus: false,
+  });
 
-    fetchProfile();
-  }, []);
-  
+  const profile = data?.data;
+
   const fullName = profile
     ? `${profile.employee.firstName} ${profile.employee.lastName}`
     : 'Manager';
@@ -53,7 +47,7 @@ export default function ManagerLayout() {
       <div className="flex min-h-screen w-full">
 
         <AppSidebar
-          title={`Hi, ${fullName}`}
+          title={`Hi, ${isLoading ? '...' : fullName}`}
           items={managerItems}
           onLogout={logout}
         />
@@ -66,11 +60,10 @@ export default function ManagerLayout() {
               <Menu className="w-6 h-6" />
             </SidebarTrigger>
             <span className="font-semibold">
-              Hi, {fullName}
+              Hi, {isLoading ? '...' : fullName}
             </span>
           </div>
 
-          {/* CONTENT */}
           <main className="flex-1 overflow-y-auto p-6">
             <Outlet />
           </main>
