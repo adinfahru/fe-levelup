@@ -19,8 +19,10 @@ import {
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import DashboardDetailModal from '@/components/manager/DashboardDetailModal';
+import EmployeeAssignEnroll from '@/components/manager/EmployeeAssignEnroll';
 import { Eye } from 'lucide-react';
 import { dashboardAPI } from '@/api/dashboard.api';
+import { modulesAPI } from '@/api/modules.api';
 
 export default function EmployeeListTable({ employees = [], onToggleStatus }) {
   const [search, setSearch] = useState('');
@@ -28,6 +30,7 @@ export default function EmployeeListTable({ employees = [], onToggleStatus }) {
   const [page, setPage] = useState(1);
   const [selectedUser, setSelectedUser] = useState(null);
   const [openDetail, setOpenDetail] = useState(false);
+  const [openAssign, setOpenAssign] = useState(false);
 
   const pageSize = 5;
 
@@ -55,6 +58,13 @@ export default function EmployeeListTable({ employees = [], onToggleStatus }) {
     },
     keepPreviousData: true,
   });
+
+  const { data: moduleResult } = useQuery({
+    queryKey: ['active-modules-for-assign'],
+    queryFn: modulesAPI.getActiveForAssign,
+  });
+
+  const activeModules = moduleResult?.items ?? [];
 
   return (
     <div className="space-y-4 p-4 border rounded-xl bg-white shadow-sm">
@@ -123,6 +133,20 @@ export default function EmployeeListTable({ employees = [], onToggleStatus }) {
                 <TableCell className="text-right">
                   <div className="flex justify-end gap-3 items-center">
                     <Button
+                      disabled={!user.isIdle}
+                      className="bg-blue-50 text-blue-700 hover:bg-blue-100"
+                      size="sm"
+                      variant="outline"
+                      onClick={async (e) => {
+                        e.stopPropagation();
+                        setSelectedUser(user);
+                        setOpenAssign(true);
+                      }}
+                    >
+                      Assign Modules
+                    </Button>
+
+                    <Button
                       size="sm"
                       variant="outline"
                       onClick={async (e) => {
@@ -184,6 +208,16 @@ export default function EmployeeListTable({ employees = [], onToggleStatus }) {
         open={openDetail}
         onClose={() => setOpenDetail(false)}
         data={selectedUser}
+      />
+
+      <EmployeeAssignEnroll
+        open={openAssign}
+        onClose={() => setOpenAssign(false)}
+        employee={selectedUser}
+        modules={activeModules}
+        onAssigned={() => {
+          setOpenAssign(false);
+        }}
       />
     </div>
   );

@@ -115,4 +115,20 @@ export const enrollmentAPI = {
 
     return handleResponse(res);
   },
+
+  /* =========================
+   ASSIGN ENROLL BY MANAGER
+========================= */
+  assignByManager: async ({ accountId, moduleId }) => {
+    const res = await fetch(`${API_BASE_URL}/enrollments/assign`, {
+      method: 'POST',
+      headers: getHeaders(),
+      body: JSON.stringify({
+        accountId,
+        moduleId,
+      }),
+    });
+
+    return handleResponse(res);
+  },
 };
