@@ -222,7 +222,7 @@ export default function UsersTable({ positions }) {
                         size="sm"
                         onClick={() => handleDelete(user.accountId)}
                       >
-                        Delete
+                        InActive
                       </Button>
                     )}
                   </TableCell>

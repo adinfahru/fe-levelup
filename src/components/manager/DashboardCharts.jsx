@@ -9,6 +9,7 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
+  Legend
 } from 'recharts';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 
@@ -110,30 +111,38 @@ export default function DashboardCharts({ dashboardData = {}, submissions = [] }
 
         <CardContent className="relative">
           <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={submissionStatusData}>
-              <CartesianGrid
-                strokeDasharray="3 3"
-                stroke="rgba(0,0,0,0.1)"
-              />
-              <XAxis dataKey="name" />
-              <YAxis />
-              <Tooltip
-                contentStyle={{
-                  background: 'rgba(255,255,255,0.8)',
-                  backdropFilter: 'blur(8px)',
-                  borderRadius: '12px',
-                  border: '1px solid rgba(255,255,255,0.4)',
-                }}
-              />
-              <Bar dataKey="count" radius={[8, 8, 0, 0]}>
+            <PieChart>
+              <Pie
+                data={submissionStatusData}
+                dataKey="count"
+                nameKey="name"
+                cx="50%"
+                cy="50%"
+                outerRadius={110}
+                innerRadius={65}   // kalau mau donut, hapus kalau mau pie full
+                paddingAngle={3}
+                stroke="#fff"
+                strokeWidth={2}
+              >
                 {submissionStatusData.map((_, index) => (
                   <Cell
                     key={index}
                     fill={BAR_COLORS[index % BAR_COLORS.length]}
                   />
                 ))}
-              </Bar>
-            </BarChart>
+              </Pie>
+
+              <Tooltip
+                contentStyle={{
+                  background: 'rgba(255,255,255,0.85)',
+                  backdropFilter: 'blur(8px)',
+                  borderRadius: '12px',
+                  border: '1px solid rgba(255,255,255,0.4)',
+                }}
+              />
+
+              <Legend />
+            </PieChart>
           </ResponsiveContainer>
         </CardContent>
       </Card>
