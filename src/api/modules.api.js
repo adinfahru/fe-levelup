@@ -6,6 +6,10 @@ export const modulesAPI = {
     return apiFetch(`/modules?${queryParams}`);
   },
 
+  getActiveForAssign: async () => {
+    return apiFetch('/modules?isActive=true&page=1&limit=100');
+  },
+
   getById: async (id) => {
     return apiFetch(`/modules/${id}`);
   },
