@@ -103,17 +103,20 @@ export default function PositionsTable({ positions }) {
                       onClick={() =>
                         navigate({ to: '/admin/positions/edit/$id', params: { id: position.id } })
                       }
+                      className="bg-amber-500 hover:bg-amber-600 text-white border-none"
                     >
                       Edit
                     </Button>
 
+                    {position.isActive && (
                     <Button
                       variant="destructive"
                       size="sm"
                       onClick={() => handleDelete(position.id)}
                     >
-                      Delete
+                      InActive
                     </Button>
+                    )}
                   </TableCell>
                 </TableRow>
               ))
