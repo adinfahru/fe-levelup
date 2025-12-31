@@ -28,6 +28,7 @@ export default function EmployeeList() {
   const employeesWithStatus = employees.map((emp) => ({
     ...emp,
     status: emp.isIdle ? 'Idle' : 'Not Idle',
+    isActive: emp.isActive
   }));
 
   return (
