@@ -15,7 +15,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { useState, useMemo } from 'react';
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { enrollmentAPI } from '@/api/enrollment.api';
 import { toast } from 'sonner';
 
@@ -26,24 +26,38 @@ export default function EmployeeAssignEnroll({
   modules = [],
   onAssigned,
 }) {
+  const queryClient = useQueryClient();
   const [selectedModuleId, setSelectedModuleId] = useState('');
 
-  // 🔹 Selected module (derived state, NOT stored twice)
+
+  // 🔥 apakah employee punya enrollment aktif di module APAPUN
+  const hasAnyActiveEnrollment = useMemo(
+    () => modules.some((m) => m.isCurrentlyEnrolled),
+    [modules]
+  );
+
   const selectedModule = useMemo(
     () => modules.find((m) => m.id === selectedModuleId),
     [modules, selectedModuleId]
   );
 
-  // 🔹 Validation state
   const isInvalidSelection =
     selectedModule?.isAlreadyCompleted || selectedModule?.isCurrentlyEnrolled;
+
 
   const assignMutation = useMutation({
     mutationFn: enrollmentAPI.assignByManager,
 
     onSuccess: () => {
       toast.success('Module successfully assigned');
-      onAssigned?.(); // parent will close modal + refresh
+
+      setSelectedModuleId('');
+      onClose?.();
+      onAssigned?.();
+
+      queryClient.invalidateQueries(['active-modules-for-assign']);
+      queryClient.invalidateQueries(['manager-enrollments']);
+      queryClient.invalidateQueries(['manager-employees']);
     },
 
     onError: (err) => {
@@ -63,7 +77,32 @@ export default function EmployeeAssignEnroll({
     },
   });
 
-  if (!employee) return null;
+    if (!employee) return null;
+
+  const handleAssign = () => {
+    if (hasAnyActiveEnrollment) {
+      toast.warning(
+        'Employee already has an active enrollment. Complete it before assigning another module.'
+      );
+      return;
+    }
+
+    if (!selectedModuleId) {
+      toast.warning('Please select a module first');
+      return;
+    }
+
+    if (isInvalidSelection) {
+      toast.info('This module cannot be assigned');
+      return;
+    }
+
+    assignMutation.mutate({
+      accountId: employee.accountId,
+      moduleId: selectedModuleId,
+    });
+  };
+
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
@@ -73,7 +112,7 @@ export default function EmployeeAssignEnroll({
         </DialogHeader>
 
         <div className="space-y-4">
-          {/* ===== EMPLOYEE INFO ===== */}
+          {/* EMPLOYEE INFO */}
           <div className="rounded-lg border p-3 bg-gray-50">
             <p className="text-sm font-medium">
               {employee.firstName} {employee.lastName}
@@ -81,22 +120,24 @@ export default function EmployeeAssignEnroll({
             <p className="text-xs text-gray-600">{employee.email}</p>
           </div>
 
-          {/* ===== MODULE SELECT ===== */}
+          {/* MODULE SELECT */}
           <div className="space-y-2">
             <Label>Active Module</Label>
 
-            <Select value={selectedModuleId} onValueChange={setSelectedModuleId}>
+            <Select
+              value={selectedModuleId}
+              onValueChange={setSelectedModuleId}
+              disabled={hasAnyActiveEnrollment} // 🔥 GLOBAL DISABLE
+            >
               <SelectTrigger>
-                <SelectValue placeholder="Select module..." />
+                <SelectValue
+                  placeholder={
+                    hasAnyActiveEnrollment ? 'Employee has active enrollment' : 'Select module...'
+                  }
+                />
               </SelectTrigger>
 
               <SelectContent>
-                {modules.length === 0 && (
-                  <SelectItem value="empty" disabled>
-                    No active modules
-                  </SelectItem>
-                )}
-
                 {modules.map((mod) => {
                   const disabled = mod.isAlreadyCompleted || mod.isCurrentlyEnrolled;
 
@@ -118,10 +159,16 @@ export default function EmployeeAssignEnroll({
                 })}
               </SelectContent>
             </Select>
+
+            {hasAnyActiveEnrollment && (
+              <p className="text-xs text-yellow-600">
+                Employee must complete the current module before receiving a new one
+              </p>
+            )}
           </div>
         </div>
 
-        {/* ===== ACTIONS ===== */}
+        {/* ACTIONS */}
         <DialogFooter className="mt-6">
           <Button variant="outline" onClick={onClose}>
             Cancel
@@ -129,13 +176,13 @@ export default function EmployeeAssignEnroll({
 
           <Button
             className="bg-indigo-600 hover:bg-indigo-700"
-            disabled={!selectedModuleId || isInvalidSelection || assignMutation.isLoading}
-            onClick={() =>
-              assignMutation.mutate({
-                accountId: employee.accountId,
-                moduleId: selectedModuleId,
-              })
+            disabled={
+              hasAnyActiveEnrollment ||
+              !selectedModuleId ||
+              isInvalidSelection ||
+              assignMutation.isLoading
             }
+            onClick={handleAssign}
           >
             {assignMutation.isLoading ? 'Assigning...' : 'Assign'}
           </Button>
