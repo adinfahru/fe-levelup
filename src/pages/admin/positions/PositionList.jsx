@@ -2,6 +2,8 @@ import { Button } from '@/components/ui/button';
 import PositionsTable from '@/components/admin/PositionsTable';
 import { useNavigate } from '@tanstack/react-router';
 import { getRouteApi } from '@tanstack/react-router';
+import { Plus } from "lucide-react";
+
 
 const Route = getRouteApi('/_admin/admin/positions');
 
@@ -18,9 +20,9 @@ export default function PositionList() {
         {/* Create Button */}
         <Button
           onClick={() => navigate({ to: '/admin/positions/create' })}
-          className="bg-indigo-600 text-white hover:bg-indigo-700"
+          className="bg-emerald-600 text-white hover:bg-emerald-700"
         >
-          Create New Position
+          <Plus className="w-4 h-4" /> Create New Position
         </Button>
       </div>
 
