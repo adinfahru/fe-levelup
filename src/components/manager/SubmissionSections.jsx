@@ -7,6 +7,52 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { ExternalLink } from "lucide-react";
 
+/* =========================
+   HELPERS
+========================= */
+
+function normalizeUrl(raw) {
+  if (!raw) return null;
+
+  if (raw.startsWith("http://") || raw.startsWith("https://")) {
+    return raw;
+  }
+
+  // github username only
+  if (!raw.includes("/") && !raw.includes(".")) {
+    return `https://github.com/${raw}`;
+  }
+
+  return `https://${raw}`;
+}
+
+function getEmbedUrl(url) {
+  if (!url) return null;
+
+  // ❌ GitHub → jangan iframe
+  if (url.includes("github.com")) return null;
+
+  // YouTube
+  if (url.includes("youtube.com") || url.includes("youtu.be")) {
+    const id = url.includes("youtu.be")
+      ? url.split("/").pop()
+      : new URL(url).searchParams.get("v");
+
+    return id ? `https://www.youtube.com/embed/${id}` : null;
+  }
+
+  // Google Docs / Drive
+  if (url.includes("docs.google.com")) {
+    return `${url.replace("/edit", "")}/preview`;
+  }
+
+  return null;
+}
+
+/* =========================
+   COMPONENT
+========================= */
+
 export function SubmissionSections({ sections = [] }) {
   return (
     <div className="space-y-6">
@@ -18,6 +64,9 @@ export function SubmissionSections({ sections = [] }) {
           OnProgress: "bg-yellow-100 text-yellow-800",
           Locked: "bg-gray-200 text-gray-600",
         };
+
+        const normalizedUrl = normalizeUrl(section.evidenceUrl);
+        const embedUrl = getEmbedUrl(normalizedUrl);
 
         return (
           <div key={section.orderIndex} className="flex gap-4">
@@ -56,10 +105,20 @@ export function SubmissionSections({ sections = [] }) {
                     </p>
                   )}
 
-                  {/* EVIDENCE */}
-                  {section.evidenceUrl ? (
+                  {/* ===== EVIDENCE PREVIEW ===== */}
+                  {embedUrl ? (
+                    <div className="overflow-hidden rounded-lg border bg-gray-50">
+                      <iframe
+                        src={embedUrl}
+                        title="Evidence Preview"
+                        className="w-full h-64"
+                        loading="lazy"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      />
+                    </div>
+                  ) : normalizedUrl ? (
                     <a
-                      href={section.evidenceUrl}
+                      href={normalizedUrl}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="inline-flex items-center gap-1 text-indigo-600 hover:underline text-sm"

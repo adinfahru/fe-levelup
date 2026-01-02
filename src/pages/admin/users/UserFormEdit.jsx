@@ -14,7 +14,7 @@ export default function UserFormEdit() {
         <p className="text-gray-600 mt-1">Update user information</p>
       </div>
 
-      <div className="max-w-2xl bg-white rounded-lg border border-gray-200 shadow-sm">
+      <div className="bg-white rounded-2xl border border-gray-200 shadow-sm">
         <UserFormComponent
           user={user}
           positions={positions}

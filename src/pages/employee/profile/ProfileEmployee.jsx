@@ -1,223 +1,293 @@
-import { useState, useContext, useEffect, useRef } from 'react';
-import { useMutation } from '@tanstack/react-query';
-import { AuthContext } from '@/context/auth.context';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useState, useContext, useEffect, useRef } from "react";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { AuthContext } from "@/context/auth.context";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from '@/components/ui/dialog';
-import { authAPI } from '@/api/auth.api';
+} from "@/components/ui/dialog";
+import { authAPI } from "@/api/auth.api";
 
 export default function ProfileEmployee() {
   const { user, logout } = useContext(AuthContext);
+
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [step, setStep] = useState('send'); // 'send' or 'confirm'
-  const [email] = useState(user?.email || '');
-  const [otp, setOtp] = useState('');
-  const [newPassword, setNewPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [error, setError] = useState('');
+  const [step, setStep] = useState("send");
+
+  const email = user?.email || "";
+  const [otp, setOtp] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [error, setError] = useState("");
   const [countdown, setCountdown] = useState(0);
+
   const otpSentRef = useRef(false);
+
+  /* ================= QUERY ================= */
+
+  const {
+    data: profileRes,
+    isLoading,
+    isError,
+  } = useQuery({
+    queryKey: ["auth-profile"],
+    queryFn: authAPI.getProfile,
+    enabled: !!user, // hanya fetch kalau user ada
+  });
+
+  const profile = profileRes?.data;
+
+  /* ================= MUTATIONS ================= */
 
   const requestMutation = useMutation({
     mutationFn: authAPI.requestPasswordReset,
     onSuccess: () => {
-      setStep('confirm');
+      setStep("confirm");
       setCountdown(15 * 60);
     },
-    onError: (err) => {
-      setError(err.message || 'Failed to send OTP. Please check your connection and try again.');
-    },
+    onError: (err) =>
+      setError(err.message || "Failed to send OTP"),
   });
 
   const confirmMutation = useMutation({
     mutationFn: authAPI.confirmPasswordReset,
     onSuccess: () => {
       setIsDialogOpen(false);
-      alert('Password changed successfully. You will be logged out.');
+      alert("Password changed successfully. Please login again.");
       logout();
     },
-    onError: (err) => {
-      setError(err.message || 'Failed to change password');
-    },
+    onError: (err) =>
+      setError(err.message || "Failed to change password"),
   });
 
-  // Countdown timer for OTP expiry
+  /* ================= EFFECTS ================= */
+
+  // Countdown OTP
   useEffect(() => {
-    if (countdown > 0) {
-      const timer = setTimeout(() => setCountdown((prev) => prev - 1), 1000);
-      return () => clearTimeout(timer);
-    }
+    if (countdown <= 0) return;
+    const timer = setTimeout(() => setCountdown((c) => c - 1), 1000);
+    return () => clearTimeout(timer);
   }, [countdown]);
 
-  // Automatically send OTP when dialog opens
+  // Auto-send OTP once dialog opens
   useEffect(() => {
     if (isDialogOpen && !otpSentRef.current) {
       otpSentRef.current = true;
       requestMutation.mutate({ email });
     }
-  }, [isDialogOpen, requestMutation, email]);
+  }, [isDialogOpen, email, requestMutation]);
 
-  const handleConfirmPassword = async (e) => {
+  /* ================= HANDLERS ================= */
+
+  const handleSubmit = (e) => {
     e.preventDefault();
-    setError('');
+    setError("");
 
     if (newPassword !== confirmPassword) {
-      setError('Passwords do not match');
-      return;
-    }
-
-    if (newPassword.length < 8) {
-      setError('Password must be at least 8 characters');
+      setError("Passwords do not match");
       return;
     }
 
     confirmMutation.mutate({ email, otp, newPassword });
   };
 
-  const resetDialog = () => {
-    setStep('send');
-    setOtp('');
-    setNewPassword('');
-    setConfirmPassword('');
-    setError('');
-    setCountdown(0);
-    otpSentRef.current = false;
-  };
+  /* ================= GUARDS ================= */
 
-  if (!user) {
-    return <div>Please log in</div>;
-  }
+  if (!user) return null;
+  if (isLoading) return <p className="p-6">Loading profile...</p>;
+  if (isError || !profile)
+    return <p className="p-6">Failed to load profile</p>;
+
+  /* ================= RENDER ================= */
 
   return (
-    <div className="w-full p-6 space-y-6">
-      <h2 className="text-xl font-semibold">Profile</h2>
+    <div className="max-w-5xl mx-auto space-y-6 p-6">
+      {/* HEADER */}
+      <div>
+        <h1 className="text-2xl font-semibold text-gray-900">
+          Profile
+        </h1>
+        <p className="text-sm text-gray-600">
+          Manage your personal information and security
+        </p>
+      </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Employee Information</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div>
-            <Label>Name</Label>
-            <p className="text-gray-700">
-              {user.firstName} {user.lastName}
-            </p>
-          </div>
-          <div>
-            <Label>Email</Label>
-            <p className="text-gray-700">{user.email}</p>
-          </div>
-          <div>
-            <Label>Role</Label>
-            <p className="text-gray-700">{user.role}</p>
-          </div>
+      <Card className="overflow-hidden rounded-2xl bg-white border shadow-sm">
+        <CardContent className="p-0">
+          <div className="grid grid-cols-1 lg:grid-cols-3">
+            {/* LEFT */}
+            <div className="lg:col-span-2 p-6 space-y-6">
+              <CardHeader className="p-0">
+                <CardTitle className="text-lg">
+                  Employee Information
+                </CardTitle>
+                <p className="text-sm text-gray-600">
+                  Account details
+                </p>
+              </CardHeader>
 
-          <Dialog
-            open={isDialogOpen}
-            onOpenChange={(open) => {
-              setIsDialogOpen(open);
-              if (!open) resetDialog();
-            }}
-          >
-            <DialogTrigger asChild>
-              <Button className="mt-4">Change Password</Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Change Password</DialogTitle>
-              </DialogHeader>
+              <div className="space-y-3">
+                <Info label="Name">
+                  {profile.employee.firstName}{" "}
+                  {profile.employee.lastName}
+                </Info>
 
-              {step === 'send' && (
-                <div className="space-y-4">
-                  {requestMutation.isPending && <p>Sending OTP...</p>}
-                  {requestMutation.error && !requestMutation.isPending && (
-                    <>
-                      <p className="text-red-500 text-sm">
-                        {requestMutation.error.message || 'Failed to send OTP'}
+                <Info label="Email">
+                  {profile.account.email}
+                </Info>
+
+                <Info label="Role">
+                  {profile.account.role}
+                </Info>
+              </div>
+
+              {/* CHANGE PASSWORD */}
+              <Dialog
+                open={isDialogOpen}
+                onOpenChange={(open) => {
+                  setIsDialogOpen(open);
+                  if (!open) {
+                    setStep("send");
+                    setOtp("");
+                    setNewPassword("");
+                    setConfirmPassword("");
+                    setError("");
+                    setCountdown(0);
+                    otpSentRef.current = false;
+                  }
+                }}
+              >
+                <DialogTrigger asChild>
+                  <Button className="bg-indigo-600 hover:bg-indigo-700">
+                    Change Password
+                  </Button>
+                </DialogTrigger>
+
+                <DialogContent className="sm:max-w-md">
+                  <DialogHeader>
+                    <DialogTitle>Change Password</DialogTitle>
+                  </DialogHeader>
+
+                  {step === "send" && (
+                    <div className="space-y-3 text-sm">
+                      <p className="text-gray-600">
+                        OTP will be sent to <b>{email}</b>
                       </p>
+
+                      {error && (
+                        <p className="text-red-500">{error}</p>
+                      )}
+
                       <Button
-                        onClick={() => requestMutation.mutate({ email })}
+                        className="w-full bg-indigo-600"
                         disabled={requestMutation.isPending}
                       >
-                        Retry Send OTP
+                        {requestMutation.isPending
+                          ? "Sending OTP..."
+                          : "Send OTP"}
                       </Button>
-                    </>
+                    </div>
                   )}
-                </div>
-              )}
 
-              {step === 'confirm' && (
-                <form onSubmit={handleConfirmPassword} className="space-y-4">
-                  <div>
-                    <Label htmlFor="otp">OTP</Label>
-                    <Input
-                      id="otp"
-                      type="text"
-                      value={otp}
-                      onChange={(e) => setOtp(e.target.value)}
-                      placeholder="Enter 6-digit OTP"
-                      required
-                      maxLength={6}
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="newPassword">New Password</Label>
-                    <Input
-                      id="newPassword"
-                      type="password"
-                      value={newPassword}
-                      onChange={(e) => setNewPassword(e.target.value)}
-                      placeholder="New password"
-                      required
-                      minLength={8}
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="confirmPassword">Confirm Password</Label>
-                    <Input
-                      id="confirmPassword"
-                      type="password"
-                      value={confirmPassword}
-                      onChange={(e) => setConfirmPassword(e.target.value)}
-                      placeholder="Confirm new password"
-                      required
-                    />
-                  </div>
-                  {countdown > 0 && (
-                    <p className="text-sm text-gray-600">
-                      OTP expires in {Math.floor(countdown / 60)}:
-                      {(countdown % 60).toString().padStart(2, '0')}
-                    </p>
+                  {step === "confirm" && (
+                    <form
+                      onSubmit={handleSubmit}
+                      className="space-y-4"
+                    >
+                      <Field
+                        label="OTP"
+                        value={otp}
+                        onChange={setOtp}
+                        placeholder="6-digit OTP"
+                      />
+                      <Field
+                        label="New Password"
+                        type="password"
+                        value={newPassword}
+                        onChange={setNewPassword}
+                      />
+                      <Field
+                        label="Confirm Password"
+                        type="password"
+                        value={confirmPassword}
+                        onChange={setConfirmPassword}
+                      />
+
+                      {error && (
+                        <p className="text-sm text-red-500">
+                          {error}
+                        </p>
+                      )}
+
+                      <Button
+                        type="submit"
+                        className="w-full bg-emerald-600 hover:bg-emerald-700"
+                        disabled={confirmMutation.isPending}
+                      >
+                        {confirmMutation.isPending
+                          ? "Updating..."
+                          : "Update Password"}
+                      </Button>
+                    </form>
                   )}
-                  {(error || confirmMutation.error) && (
-                    <p className="text-red-500 text-sm">{error || confirmMutation.error.message}</p>
-                  )}
-                  <Button type="submit" disabled={confirmMutation.isPending}>
-                    {confirmMutation.isPending ? 'Changing...' : 'Change Password'}
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => requestMutation.mutate({ email })}
-                    disabled={requestMutation.isPending || countdown > 0}
-                    className="mt-2"
-                  >
-                    {requestMutation.isPending ? 'Resending...' : 'Resend OTP'}
-                  </Button>
-                </form>
-              )}
-            </DialogContent>
-          </Dialog>
+                </DialogContent>
+              </Dialog>
+            </div>
+
+            {/* RIGHT VECTOR */}
+            <div className="relative hidden lg:flex items-center justify-center bg-gradient-to-br from-indigo-100 to-white">
+              <div className="absolute h-64 w-64 rounded-full bg-indigo-600/10" />
+              <div className="absolute bottom-10 right-10 h-24 w-24 rounded-full bg-indigo-600/20" />
+              <div className="relative text-indigo-900/70 font-semibold text-sm">
+                Account Security
+              </div>
+            </div>
+          </div>
         </CardContent>
       </Card>
+    </div>
+  );
+}
+
+/* ================= SMALL COMPONENTS ================= */
+
+function Info({ label, children }) {
+  return (
+    <div className="rounded-lg bg-gray-50 px-4 py-3">
+      <p className="text-xs text-gray-500">{label}</p>
+      <p className="font-medium text-gray-900">{children}</p>
+    </div>
+  );
+}
+
+function Field({
+  label,
+  value,
+  onChange,
+  type = "text",
+  placeholder,
+}) {
+  return (
+    <div className="space-y-1">
+      <Label>{label}</Label>
+      <Input
+        type={type}
+        value={value}
+        placeholder={placeholder}
+        onChange={(e) => onChange(e.target.value)}
+        required
+      />
     </div>
   );
 }

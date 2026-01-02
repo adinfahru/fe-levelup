@@ -19,6 +19,7 @@ import {
 } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { usersAPI } from '@/api/users.api';
+import { Eye } from "lucide-react";
 
 export default function UsersTable({ positions }) {
   const navigate = useNavigate();
@@ -212,8 +213,9 @@ export default function UsersTable({ positions }) {
                       onClick={() =>
                         navigate({ to: '/admin/users/$id', params: { id: user.accountId } })
                       }
+                      className="bg-indigo-600 text-white hover:bg-indigo-700"
                     >
-                      View Details
+                      <Eye className="w-4 h-4" />
                     </Button>
 
                     {user.isActive && (
@@ -222,7 +224,7 @@ export default function UsersTable({ positions }) {
                         size="sm"
                         onClick={() => handleDelete(user.accountId)}
                       >
-                        Delete
+                        InActive
                       </Button>
                     )}
                   </TableCell>

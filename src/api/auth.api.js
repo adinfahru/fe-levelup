@@ -47,4 +47,20 @@ export const authAPI = {
     });
     return handleResponse(response);
   },
+
+  getProfile: async () => {
+  const response = await fetch(
+    `${API_BASE_URL}/auth/profile`,
+    {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${localStorage.getItem('token')}`,
+      },
+    }
+  );
+
+  return handleResponse(response);
+},
+
 };

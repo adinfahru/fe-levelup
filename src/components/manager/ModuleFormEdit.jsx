@@ -15,9 +15,9 @@ export default function ModuleFormEdit({ moduleId }) {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
 
-  const [moduleTitle, setModuleTitle] = useState('');
-  const [moduleDesc, setModuleDesc] = useState('');
-  const [estimatedDays, setEstimatedDays] = useState('');
+  const [moduleTitle, setModuleTitle] = useState("");
+  const [moduleDesc, setModuleDesc] = useState("");
+  const [estimatedDays, setEstimatedDays] = useState("");
   const [sections, setSections] = useState([]);
   const [originalSectionIds, setOriginalSectionIds] = useState([]);
   const handleSectionsChange = (newSections) => setSections(newSections);
@@ -80,8 +80,7 @@ export default function ModuleFormEdit({ moduleId }) {
     const hasNewItems = sections.some((s) => !s.id);
 
     try {
-      setSubmitting(true);
-      setError(null);
+      const days = parseInt(estimatedDays);
 
       // Re-fetch latest module data to get current activeCount
       // (activeCount might have changed since page load)
