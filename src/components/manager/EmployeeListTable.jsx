@@ -23,8 +23,10 @@ import EmployeeAssignEnroll from '@/components/manager/EmployeeAssignEnroll';
 import { Eye } from 'lucide-react';
 import { dashboardAPI } from '@/api/dashboard.api';
 import { modulesAPI } from '@/api/modules.api';
+import { useQueryClient } from '@tanstack/react-query';
 
 export default function EmployeeListTable({ employees = [], onToggleStatus }) {
+  const queryClient = useQueryClient();
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [page, setPage] = useState(1);
@@ -34,9 +36,18 @@ export default function EmployeeListTable({ employees = [], onToggleStatus }) {
 
   const pageSize = 5;
 
-  const mergedData = useMemo(() => {
-    return employees;
-  }, [employees]);
+  // const mergedData = useMemo(() => {
+  //   return employees;
+  // }, [employees]);
+
+  // console.log('employees sample', employees[0]);
+
+const mergedData = useMemo(() => {
+  if (!Array.isArray(employees)) return [];
+  return employees.filter(e => e.isActive === true);
+}, [employees]);
+
+
 
   const { data: paginated = [] } = useQuery({
     queryKey: ['employee-list-view', mergedData, search, statusFilter, page],
@@ -59,12 +70,13 @@ export default function EmployeeListTable({ employees = [], onToggleStatus }) {
     keepPreviousData: true,
   });
 
-  const { data: moduleResult } = useQuery({
-    queryKey: ['active-modules-for-assign'],
-    queryFn: modulesAPI.getActiveForAssign,
+  const { data: assignableModules = [] } = useQuery({
+    queryKey: ['assignable-modules', selectedUser?.accountId],
+    enabled: !!selectedUser?.accountId,
+    queryFn: () => modulesAPI.getAssignableForEmployee(selectedUser.accountId),
   });
 
-  const activeModules = moduleResult?.items ?? [];
+  const activeModules = assignableModules;
 
   return (
     <div className="space-y-4 p-4 border rounded-xl bg-white shadow-sm">
@@ -211,12 +223,15 @@ export default function EmployeeListTable({ employees = [], onToggleStatus }) {
       />
 
       <EmployeeAssignEnroll
+        key={selectedUser?.accountId} // 🔥 INI KUNCI NYA
         open={openAssign}
         onClose={() => setOpenAssign(false)}
         employee={selectedUser}
         modules={activeModules}
         onAssigned={() => {
           setOpenAssign(false);
+          queryClient.invalidateQueries(['active-modules-for-assign']);
+          queryClient.invalidateQueries(['manager-enrollments']);
         }}
       />
     </div>

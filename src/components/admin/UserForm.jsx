@@ -89,10 +89,8 @@ export default function UserForm({ user, onSuccess, onCancel, positions }) {
     setLoading(true);
 
     try {
-      // Prepare payload - only send fields that exist in formData
       const payload = { ...formData };
 
-      // For edit mode: remove password field unless it has a non-empty value
       if (user?.accountId) {
         if (!payload.password || payload.password.trim() === '') {
           // Edit mode and no new password - remove password field entirely
@@ -149,160 +147,183 @@ export default function UserForm({ user, onSuccess, onCancel, positions }) {
     }
   };
 
-  return (
-    <form onSubmit={handleSubmit} className="space-y-6 p-6 max-w-2xl">
-      {/* Status Badge - Only show in edit mode */}
-      {user?.accountId && (
-        <div className="mb-4 flex items-center gap-3">
-          <span className="text-sm font-medium">Status:</span>
-          {user.isActive ? (
-            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-              Active
-            </span>
-          ) : (
-            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
-              Inactive
-            </span>
-          )}
-        </div>
-      )}
+return (
+  <div className="max-w-5xl mx-auto">
+    <form
+      onSubmit={handleSubmit}
+      className="border rounded-2xl overflow-hidden shadow-xl bg-white grid grid-cols-1 md:grid-cols-2"
+    >
+      {/* LEFT - FORM */}
+      <div className="p-8 space-y-8">
 
-      <div className="grid grid-cols-2 gap-4">
-        {/* First Name */}
+        {/* Title */}
         <div>
-          <Label htmlFor="firstName">First Name</Label>
-          <Input
-            id="firstName"
-            name="firstName"
-            type="text"
-            value={formData.firstName}
-            onChange={handleChange}
-            placeholder="John"
-            required
-            maxLength={100}
-          />
+          <h2 className="text-2xl font-semibold text-gray-800">
+            {user?.accountId ? "Edit User" : "Create New User"}
+          </h2>
+          <p className="text-sm text-gray-500">
+            Manage user data, role and account status
+          </p>
         </div>
 
-        {/* Last Name */}
-        <div>
-          <Label htmlFor="lastName">Last Name</Label>
-          <Input
-            id="lastName"
-            name="lastName"
-            type="text"
-            value={formData.lastName}
-            onChange={handleChange}
-            placeholder="Doe"
-            required
-            maxLength={100}
-          />
-        </div>
-      </div>
-
-      {/* Email */}
-      <div>
-        <Label htmlFor="email">Email</Label>
-        <Input
-          id="email"
-          name="email"
-          type="email"
-          value={formData.email}
-          onChange={handleChange}
-          placeholder="john.doe@example.com"
-          required
-        />
-      </div>
-
-      {/* Password */}
-      <div>
-        <Label htmlFor="password">
-          Password{' '}
-          {user?.accountId && (
-            <span className="text-gray-500 text-xs">(leave empty to keep current)</span>
-          )}
-        </Label>
-        <Input
-          id="password"
-          name="password"
-          type="text"
-          value={formData.password || ''}
-          onChange={handleChange}
-          placeholder={
-            user?.accountId ? 'Leave empty to keep current password' : 'Minimum 8 characters'
-          }
-          required={!user?.accountId}
-          minLength={8}
-        />
-      </div>
-
-      <div className="grid grid-cols-2 gap-4">
-        {/* Role */}
-        <div>
-          <Label htmlFor="role">Role</Label>
-          <Select value={formData.role} onValueChange={handleRoleChange}>
-            <SelectTrigger id="role">
-              <SelectValue placeholder="Select role" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="Admin">Admin</SelectItem>
-              <SelectItem value="Manager">Manager</SelectItem>
-              <SelectItem value="Employee">Employee</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-
-        {/* Position */}
-        <div>
-          <Label htmlFor="position">Position</Label>
-          <Select value={formData.positionId} onValueChange={handlePositionChange}>
-            <SelectTrigger id="position">
-              <SelectValue placeholder="Select position" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="__NA">N/A</SelectItem>
-              {allPositions.map((pos) => (
-                <SelectItem key={pos.id} value={pos.id}>
-                  {pos.title}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
-
-      {/* Error Message */}
-      {error && (
-        <div className="bg-red-50 border border-red-200 rounded p-3">
-          <p className="text-sm text-red-700">{error}</p>
-        </div>
-      )}
-
-      {/* Buttons */}
-      <div className="flex gap-3 pt-4">
-        <Button
-          type="submit"
-          disabled={loading || activating}
-          className="bg-indigo-600 hover:bg-indigo-700 text-white"
-        >
-          {loading ? 'Saving...' : user?.accountId ? 'Update User' : 'Create User'}
-        </Button>
-
-        {/* Activate Button - Only show in edit mode when user is inactive */}
-        {user?.accountId && !user.isActive && (
-          <Button
-            type="button"
-            disabled={loading || activating}
-            onClick={handleActivate}
-            className="bg-green-600 hover:bg-green-700 text-white"
-          >
-            {activating ? 'Activating...' : 'Activate User'}
-          </Button>
+        {/* STATUS */}
+        {user?.accountId && (
+          <div>
+            {user.isActive ? (
+              <span className="px-3 py-1 rounded-full text-xs font-medium bg-emerald-100 text-emerald-700">
+                Active
+              </span>
+            ) : (
+              <span className="px-3 py-1 rounded-full text-xs font-medium bg-red-100 text-red-700">
+                Inactive
+              </span>
+            )}
+          </div>
         )}
 
-        <Button type="button" variant="outline" onClick={onCancel} disabled={loading || activating}>
-          Cancel
-        </Button>
+        {/* FORM FIELDS */}
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <Label>First Name</Label>
+            <Input
+              name="firstName"
+              value={formData.firstName}
+              onChange={handleChange}
+              placeholder="e.g. John"
+            />
+          </div>
+
+          <div>
+            <Label>Last Name</Label>
+            <Input
+              name="lastName"
+              value={formData.lastName}
+              onChange={handleChange}
+              placeholder="e.g. Doe"
+            />
+          </div>
+        </div>
+
+        <div>
+          <Label>Email</Label>
+          <Input
+            name="email"
+            value={formData.email}
+            onChange={handleChange}
+            placeholder="name@example.com"
+          />
+        </div>
+
+        <div>
+          <Label>Password</Label>
+          <Input
+            name="password"
+            type="password"
+            value={formData.password || ""}
+            onChange={handleChange}
+            placeholder={
+              user?.accountId
+                ? "Leave blank to keep current password"
+                : "Min 8 chars, 1 uppercase & symbol"
+            }
+          />
+        </div>
+
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <Label>Role</Label>
+            <Select value={formData.role} onValueChange={handleRoleChange}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select a role" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Admin">Admin</SelectItem>
+                <SelectItem value="Manager">Manager</SelectItem>
+                <SelectItem value="Employee">Employee</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div>
+            <Label>Position</Label>
+            <Select value={formData.positionId} onValueChange={handlePositionChange}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select position (optional)" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="__NA">N/A</SelectItem>
+                {allPositions.map((pos) => (
+                  <SelectItem key={pos.id} value={pos.id}>
+                    {pos.title}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+
+        {error && (
+          <div className="bg-red-50 border border-red-200 rounded p-3 text-sm text-red-700">
+            {error}
+          </div>
+        )}
+
+        <div className="flex justify-between pt-4">
+          {user?.accountId && !user.isActive && (
+            <Button
+              type="button"
+              className="bg-green-600 hover:bg-green-700"
+              onClick={handleActivate}
+            >
+              Activate User
+            </Button>
+          )}
+
+          <div className="ml-auto flex gap-3">
+            <Button type="button" variant="outline" onClick={onCancel}>
+              Cancel
+            </Button>
+
+            <Button className="bg-indigo-600 hover:bg-indigo-700 text-white">
+              {user?.accountId ? "Update" : "Create"}
+            </Button>
+          </div>
+        </div>
       </div>
+
+      {/* RIGHT DECORATION PANEL */}
+      <div className="hidden md:flex items-center justify-center bg-gradient-to-br from-indigo-600 via-indigo-500 to-indigo-400 relative">
+        <div className="absolute w-72 h-72 rounded-full bg-white/20 blur-3xl"></div>
+        <div className="w-72 h-72 rounded-full bg-white shadow-2xl flex items-center justify-center relative">
+          <svg
+            width="120"
+            height="120"
+            viewBox="0 0 24 24"
+            fill="none"
+            className="text-indigo-600 drop-shadow-xl"
+          >
+            <circle cx="12" cy="8" r="4" stroke="currentColor" strokeWidth="2" />
+            <path
+              d="M4 20c0-4 4-6 8-6s8 2 8 6"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+            />
+          </svg>
+
+          <div className="absolute -top-3 -left-3 w-10 h-10 bg-white/30 rounded-full backdrop-blur-md border border-white/40 shadow-md"></div>
+          <div className="absolute -bottom-4 right-4 w-14 h-14 bg-white/30 rounded-xl rotate-12 backdrop-blur-md border border-white/40 shadow-md"></div>
+        </div>
+
+        <h3 className="absolute bottom-10 text-white font-semibold text-xl text-center px-6">
+          Manage your users
+          <br />
+          with confidence ✨
+        </h3>
+      </div>
+
     </form>
-  );
+  </div>
+);
+
 }

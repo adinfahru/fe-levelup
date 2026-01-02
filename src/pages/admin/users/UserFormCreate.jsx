@@ -14,7 +14,7 @@ export default function UserFormCreate() {
         <p className="text-gray-600 mt-1">Add a new user to the system</p>
       </div>
 
-      <div className="max-w-2xl bg-white rounded-lg border border-gray-200 shadow-sm">
+      <div className="bg-white rounded-2xl border border-gray-200 shadow-sm">
         <UserFormComponent
           user={user}
           positions={positions}

@@ -11,6 +11,8 @@ import {
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { positionsAPI } from '@/api/positions.api';
+import { Pencil } from "lucide-react";
+
 
 export default function PositionsTable({ positions }) {
   const navigate = useNavigate();
@@ -103,17 +105,20 @@ export default function PositionsTable({ positions }) {
                       onClick={() =>
                         navigate({ to: '/admin/positions/edit/$id', params: { id: position.id } })
                       }
+                      className="bg-amber-500 hover:bg-amber-600 text-white border-none"
                     >
-                      Edit
+                      <Pencil className="w-4 h-4" />
                     </Button>
 
+                    {position.isActive && (
                     <Button
                       variant="destructive"
                       size="sm"
                       onClick={() => handleDelete(position.id)}
                     >
-                      Delete
+                      InActive
                     </Button>
+                    )}
                   </TableCell>
                 </TableRow>
               ))
