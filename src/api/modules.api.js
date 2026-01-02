@@ -10,6 +10,14 @@ export const modulesAPI = {
     return apiFetch('/modules?isActive=true&page=1&limit=100');
   },
 
+  getAssignableForEmployee: async (employeeAccountId) => {
+    if (!employeeAccountId) return [];
+
+    return apiFetch(
+      `/modules/assignable?employeeAccountId=${employeeAccountId}`
+    );
+  },
+
   getById: async (id) => {
     return apiFetch(`/modules/${id}`);
   },
