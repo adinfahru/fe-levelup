@@ -34,9 +34,18 @@ export default function EmployeeListTable({ employees = [], onToggleStatus }) {
 
   const pageSize = 5;
 
-  const mergedData = useMemo(() => {
-    return employees;
-  }, [employees]);
+  // const mergedData = useMemo(() => {
+  //   return employees;
+  // }, [employees]);
+
+  // console.log('employees sample', employees[0]);
+
+const mergedData = useMemo(() => {
+  if (!Array.isArray(employees)) return [];
+  return employees.filter(e => e.isActive === true);
+}, [employees]);
+
+
 
   const { data: paginated = [] } = useQuery({
     queryKey: ['employee-list-view', mergedData, search, statusFilter, page],
